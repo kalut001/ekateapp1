@@ -39,3 +39,9 @@ Copiati dai repository ufficiali degli autori il 2026-11-02 (scope di progetto: 
 - Agent Reach: `uv tool install https://github.com/Panniantong/Agent-Reach/releases/latest/download/agent-reach.zip`
   (NON installare il pacchetto PyPI `agent-reach`: non è questo progetto)
 - Claudex Loop: richiede le CLI `codex` e `claude` installate e autenticate.
+
+## Installazione automatica nelle sessioni cloud
+
+`.claude/hooks/session-start.sh` (registrato come hook SessionStart in `.claude/settings.json`) installa
+le CLI sopra all'avvio di ogni sessione Claude Code cloud, saltando quelle già presenti.
+Sul PC locale non fa nulla: lì vanno installate a mano con i comandi sopra.
