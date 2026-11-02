@@ -9,6 +9,12 @@ Copiati dai repository ufficiali degli autori il 2026-11-02 (scope di progetto: 
 | Taste Skill | github.com/Leonxlnx/taste-skill (`skills/taste-skill`) | 12af471 | MIT | design-taste-frontend (cartella `taste-skill`) |
 | Figma | github.com/figma/mcp-server-guide (`skills/`) | f3f264d | vedi repo | figma-* (16 skill) |
 | Playwright | github.com/microsoft/playwright-cli (`skills/playwright-cli`) | c2d8d19 | Apache-2.0 | playwright-cli |
+| Agent Skills (Addy Osmani) | github.com/addyosmani/agent-skills (`skills/`) | 301b02b | MIT | 25 skill (spec-driven-development, test-driven-development, code-review-and-quality, security-and-hardening, ecc.) |
+| Strix | github.com/usestrix/strix (`skills/`) | 6b7ae2e | Apache-2.0 | 9 skill di security testing (penetration-testing-with-strix, owasp-top-10-testing, ecc.) |
+| anydoc | github.com/firecrawl/anydoc (`skills/`) | e7178e0 | MIT | convert-documents-to-markdown |
+| Claudex Loop | github.com/chaseai-yt/claudex-loop (`skills/`) | 53cddc4 | MIT | claudex-loop, claudex-route, codex-build, codex-review |
+| Claude Code Setup | github.com/anthropics/claude-plugins-official (`plugins/claude-code-setup/skills/`) | a7ba5b9 | vedi repo | claude-automation-recommender |
+| Agent Reach | github.com/Panniantong/Agent-Reach (`agent_reach/skill`) | 7a38047 | MIT | agent-reach |
 
 ## Server MCP (`.mcp.json`)
 
@@ -25,3 +31,11 @@ Copiati dai repository ufficiali degli autori il 2026-11-02 (scope di progetto: 
 - Il motore del detector (`.claude/skills/impeccable/scripts/impeccable detect <file>`) si scarica da
   GitHub Releases con verifica SHA-256.
 - Aggiornamento: ripetere la copia dai repository sopra.
+
+## CLI richieste da alcune skill (installazione globale, da ripetere su ogni macchina/container)
+
+- anydoc: `npm install -g @firecrawl/anydoc`
+- Strix: `uv tool install strix-agent` (serve Docker e una chiave LLM: `STRIX_LLM`, `LLM_API_KEY`)
+- Agent Reach: `uv tool install https://github.com/Panniantong/Agent-Reach/releases/latest/download/agent-reach.zip`
+  (NON installare il pacchetto PyPI `agent-reach`: non è questo progetto)
+- Claudex Loop: richiede le CLI `codex` e `claude` installate e autenticate.
