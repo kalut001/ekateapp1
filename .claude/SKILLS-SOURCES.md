@@ -17,6 +17,11 @@ Copiati dai repository ufficiali degli autori il 2026-11-02 (scope di progetto: 
 
 ## Note
 
-- La skill `playwright-cli` richiede il comando `playwright-cli`: `npm install -g @playwright/cli@latest`.
-- Copia manuale di Impeccable: non include l'hook di design automatico (per quello: `npx impeccable install`).
+- La skill `playwright-cli` richiede il comando `playwright-cli`: `npm install -g @playwright/cli@latest`
+  (installazione globale: va ripetuta in ogni nuovo container/macchina).
+- Copia manuale di Impeccable: non include l'hook di design automatico. `npx impeccable install` scarica da
+  impeccable.style (bloccato nell'ambiente cloud). In alternativa si può copiare a mano
+  `.claude/settings.json` (hook) e `.claude/agents/` dal repository pbakaus/impeccable, commit c3c94b9.
+- Il motore del detector (`.claude/skills/impeccable/scripts/impeccable detect <file>`) si scarica da
+  GitHub Releases con verifica SHA-256.
 - Aggiornamento: ripetere la copia dai repository sopra.
