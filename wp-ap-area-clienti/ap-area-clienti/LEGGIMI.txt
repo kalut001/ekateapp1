@@ -1,4 +1,4 @@
-AP AREA CLIENTI – versione 1.9.14
+AP AREA CLIENTI – versione 1.9.15
 =================================
 
 Plugin WordPress per l'area riservata delle aziende clienti di AP Sicurezza Lavoro.
@@ -275,4 +275,18 @@ NOVITÀ 1.9.14 – correzioni dopo la revisione della 1.9.13
 - Accesso: «Ricordami» non è più spuntato in partenza (computer condivisi).
 - Documenti, versioni, foto, esportazione e riepilogo: non si scaricano finché il cliente non ha firmato
   informativa e accordo art. 28 (prima era bloccato solo il resto dell'area).
+- Nessuna modifica al database (resta versione 14).
+
+NOVITÀ 1.9.15 – solidità del codice (nessuna modifica visibile nell'uso quotidiano)
+- Registro unico delle operazioni: per ogni modulo sono scritti in un solo punto chi può usarlo (studio o
+  cliente), il permesso richiesto, se riguarda un'azienda, se è consentito in sola consultazione e prima
+  delle firme. Un'operazione non registrata viene rifiutata. Comportamento invariato rispetto alla 1.9.14.
+- Salvataggi «tutto o niente» garantiti: se anche una sola tabella del plugin non supporta le transazioni
+  (non InnoDB), l'area riservata NON salva modifiche e lo dice («Salvataggio bloccato…»), invece di
+  rischiare salvataggi a metà. La consultazione funziona. Avviso in bacheca e, in Impostazioni > Area Clienti
+  > Integrità dei dati, l'elenco delle tabelle da convertire. L'esito della conversione automatica viene
+  ora controllato.
+- File riorganizzati per area (documenti, utenti, notifiche, importazione, scadenze…) al posto dei file per
+  versione: codice delle funzioni identico, verificato automaticamente.
+- Test automatici e analisi statica nel repository di sviluppo (non inclusi nel pacchetto del plugin).
 - Nessuna modifica al database (resta versione 14).
