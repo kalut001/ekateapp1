@@ -36,12 +36,21 @@ require_once APAC_DIR . 'includes/admin-tools.php';
 require_once APAC_DIR . 'includes/search.php';
 require_once APAC_DIR . 'includes/pwa.php';
 require_once APAC_DIR . 'includes/ui.php';
-require_once APAC_DIR . 'includes/session1.php';
-require_once APAC_DIR . 'includes/session2.php';
-require_once APAC_DIR . 'includes/session3.php';
+// 1.9.15: file per area (prima session1.php, session2.php, session3.php, v190.php). L'ordine conserva
+// l'ordine di registrazione degli hook con la stessa priorità.
+require_once APAC_DIR . 'includes/webapp.php';
+require_once APAC_DIR . 'includes/interfaccia.php';
+require_once APAC_DIR . 'includes/utenti.php';
+require_once APAC_DIR . 'includes/scadenze.php';
+require_once APAC_DIR . 'includes/documenti.php';
+require_once APAC_DIR . 'includes/segnalazioni.php';
+require_once APAC_DIR . 'includes/lavoratori.php';
+require_once APAC_DIR . 'includes/importazione.php';
+require_once APAC_DIR . 'includes/push.php';
+require_once APAC_DIR . 'includes/riepiloghi.php';
 require_once APAC_DIR . 'includes/seo.php';
 require_once APAC_DIR . 'includes/consensi.php';
-require_once APAC_DIR . 'includes/v190.php';
+require_once APAC_DIR . 'includes/invii.php';
 require_once APAC_DIR . 'includes/perf.php';
 require_once APAC_DIR . 'includes/richieste.php';
 

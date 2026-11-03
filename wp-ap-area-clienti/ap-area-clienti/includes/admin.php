@@ -300,3 +300,25 @@ function apac_settings_page() {
 	</div>
 	<?php
 }
+
+/* 1.9.15: spostato qui da session1.php. */
+
+/** Stato del backup per la pagina impostazioni. */
+function apac_render_backup_status() {
+	$updraft  = class_exists( 'UpdraftPlus' ) || in_array( 'updraftplus/updraftplus.php', (array) get_option( 'active_plugins', array() ), true );
+	$uploads  = wp_upload_dir( null, false );
+	$inside   = 0 === strpos( wp_normalize_path( apac_private_dir() ), wp_normalize_path( trailingslashit( $uploads['basedir'] ) ) );
+	$content  = 0 === strpos( wp_normalize_path( apac_private_dir() ), wp_normalize_path( trailingslashit( WP_CONTENT_DIR ) ) );
+	echo '<h2 id="apac-backup">Backup</h2>';
+	echo '<p>Consigliato: plugin gratuito <strong>UpdraftPlus</strong> con salvataggio automatico su Google Drive (database + caricamenti).</p>';
+	echo $updraft ? '<div class="notice notice-success inline"><p><strong>UpdraftPlus attivo.</strong> Verifica in Impostazioni → UpdraftPlus Backups che siano programmati sia i <em>file</em> sia il <em>database</em> e che la destinazione sia Google Drive.</p></div>'
+		: '<div class="notice notice-warning inline"><p><strong>Nessun plugin di backup rilevato.</strong> Senza backup, un guasto del server può far perdere documenti e dati dei clienti.</p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	if ( $inside ) {
+		echo '<p>La cartella dei documenti dei clienti è dentro <code>uploads</code>: viene inclusa nel backup dei <em>caricamenti</em> (Uploads).</p>';
+	} elseif ( $content ) {
+		echo '<p>La cartella dei documenti è dentro <code>wp-content</code>: in UpdraftPlus va inclusa la voce <em>Altre cartelle</em> (Others).</p>';
+	} else {
+		echo '<div class="notice notice-error inline"><p><strong>Attenzione:</strong> la cartella dei documenti (<code>' . esc_html( apac_private_dir() ) . '</code>) è fuori da <code>wp-content</code> e la versione gratuita di UpdraftPlus non la salva. Va copiata con il backup dell’hosting.</p></div>';
+	}
+	echo '<p class="description">I backup contengono dati personali dei lavoratori: conservali solo su un account Google dello studio e indicalo nell’informativa privacy.</p>';
+}
