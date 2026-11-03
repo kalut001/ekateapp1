@@ -9,6 +9,8 @@ on:
     paths:
       - 'wp-ap-area-clienti/**'
       - '.github/workflows/ap-area-clienti.yml'
+  # Verifica completa (anche mutazioni e aggiornamento dalla 1.9.13), avviabile a mano da Actions.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -75,3 +77,45 @@ jobs:
         run: |
           tail -n 100 .test-env/wp/wp-content/debug.log || true
           tail -n 50 .test-env/server.log || true
+
+  verifiche-complete:
+    # Solo su richiesta (circa 40 minuti): rapporto RISULTATI-VERIFICHE.md e pacchetti come artefatti.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      APAC_TEST_DB_HOST: 127.0.0.1:3306
+      APAC_TEST_DB_USER: root
+      APAC_TEST_DB_PASS: root
+      APAC_TEST_DB_NAME: wp_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, curl, zip, gd, mbstring, openssl, sodium
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress
+      - name: Tutte le verifiche
+        run: bin/verifiche.sh
+      - name: Pacchetto di sviluppo
+        if: always()
+        run: bin/build-dev-zip.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verifiche-ap-area-clienti
+          path: |
+            wp-ap-area-clienti/build/RISULTATI-VERIFICHE.md
+            wp-ap-area-clienti/build/*.zip

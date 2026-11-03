@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AP Area Clienti
  * Description:       Area riservata per le aziende clienti: dashboard, anagrafica aziendale, lavoratori e attestati, archivio documenti protetto, scadenzario con avvisi email, segnalazioni e analisi delle criticità. Inserire lo shortcode [ap_area_clienti] in una pagina.
- * Version:           1.9.15
+ * Version:           1.9.16
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            AP Sicurezza Lavoro
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'APAC_VERSION', '1.9.15' );
+define( 'APAC_VERSION', '1.9.16' );
 define( 'APAC_DB_VERSION', '14' );
 define( 'APAC_FILE', __FILE__ );
 define( 'APAC_DIR', plugin_dir_path( __FILE__ ) );
@@ -167,11 +167,17 @@ function apac_migration_notice() {
 	echo '<div class="notice notice-error"><p><strong>AP Area Clienti:</strong> l’aggiornamento del database non è riuscito (' . esc_html( $err['missing'] ) . '). Il plugin riprova automaticamente; se il problema persiste contatta l’assistenza dell’hosting. Dettaglio: ' . esc_html( $err['db'] ) . '</p></div>';
 }
 
-/* 1.9.15: avviso in bacheca se una tabella del plugin non supporta le transazioni (salvataggi bloccati). */
+/*
+ * 1.9.15: avviso in bacheca quando i salvataggi sono bloccati.
+ * 1.9.16: anche quando lo stato delle tabelle non è verificabile (prima l'avviso mancava, ma il blocco c'era).
+ */
 add_action( 'admin_notices', 'apac_tx_notice' );
 function apac_tx_notice() {
-	if ( ! current_user_can( 'manage_options' ) || 'no' !== apac_tx_support() ) {
+	if ( ! current_user_can( 'manage_options' ) || ! apac_tx_salvataggi_bloccati() ) {
 		return;
 	}
-	echo '<div class="notice notice-error"><p><strong>AP Area Clienti:</strong> alcune tabelle del database non supportano le transazioni: l’area riservata non salva modifiche finché non vengono convertite in InnoDB. <a href="' . esc_url( admin_url( 'options-general.php?page=apac-settings' ) ) . '">Dettagli</a></p></div>';
+	$motivo = 'no' === apac_tx_support()
+		? 'alcune tabelle del database non supportano le transazioni: l’area riservata non salva modifiche finché non vengono convertite in InnoDB.'
+		: 'non è stato possibile verificare che le tabelle del database supportino le transazioni: per sicurezza l’area riservata non salva modifiche finché la verifica non riesce.';
+	echo '<div class="notice notice-error"><p><strong>AP Area Clienti – salvataggi bloccati:</strong> ' . esc_html( $motivo ) . ' <a href="' . esc_url( admin_url( 'options-general.php?page=apac-settings' ) ) . '">Dettagli</a></p></div>';
 }

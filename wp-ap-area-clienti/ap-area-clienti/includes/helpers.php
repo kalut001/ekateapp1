@@ -472,7 +472,7 @@ function apac_tx_begin() {
 	// sola tabella del plugin non è transazionale (o non si riesce a verificarlo) l'operazione non parte:
 	// meglio nessun salvataggio che un salvataggio a metà.
 	$GLOBALS['apac_tx_non_supportate'] = false;
-	if ( function_exists( 'apac_tx_tabelle_problema' ) && array() !== apac_tx_tabelle_problema() ) {
+	if ( function_exists( 'apac_tx_salvataggi_bloccati' ) && apac_tx_salvataggi_bloccati() ) {
 		$GLOBALS['apac_tx_non_supportate'] = true;
 		return false;
 	}

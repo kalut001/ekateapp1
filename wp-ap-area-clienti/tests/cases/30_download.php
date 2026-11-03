@@ -56,7 +56,11 @@ T::test(
 	function () {
 		$a = Fx::azienda( 'Down4 ' . bin2hex( random_bytes( 3 ) ) );
 		$c = Fx::cliente( $a );
-		Db::q( "INSERT INTO wp_apac_documenti (azienda_id, titolo, categoria, nome_file, file_path, mime, dimensione, caricato_da, created_at) VALUES ({$a}, 'X', 'altro', 'x.php', '../../wp/wp-config.php', 'application/pdf', 1, 1, NOW())" );
+		// Percorso relativo dalla cartella protetta a wp-config.php, che ESISTE: senza il controllo verrebbe servito.
+		$priv = Wp::php( 'echo apac_private_dir();' );
+		$rel  = str_repeat( '../', substr_count( trim( $priv, '/' ), '/' ) + 1 ) . ltrim( T::$env['wp_dir'], '/' ) . '/wp-config.php';
+		T::ok( is_file( $priv . '/' . $rel ), 'il file bersaglio deve esistere', $priv . '/' . $rel );
+		Db::q( "INSERT INTO wp_apac_documenti (azienda_id, titolo, categoria, nome_file, file_path, mime, dimensione, caricato_da, created_at) VALUES ({$a}, 'X', 'altro', 'x.php', '" . Db::e( $rel ) . "', 'application/pdf', 1, 1, NOW())" );
 		$doc = (int) Db::c()->insert_id;
 		$s   = Fx::login( $c['email'], $c['pass'] );
 		$r   = $s->get( T::url( array( 'apac_file' => $doc, '_wpnonce' => $s->nonce( 'apac_file_' . $doc ) ) ) );

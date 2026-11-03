@@ -58,8 +58,12 @@ T::test(
 T::test(
 	'rollback: caricamento documento fallito nel database non lascia il file sul server',
 	function () {
-		$a   = Fx::azienda( 'Rb3 ' . bin2hex( random_bytes( 3 ) ) );
-		$dir = Wp::php( 'echo apac_private_dir();' ) . '/' . $a;
+		$a     = Fx::azienda( 'Rb3 ' . bin2hex( random_bytes( 3 ) ) );
+		$dir   = Wp::php( 'echo apac_private_dir();' ) . '/' . $a;
+		$lista = function () use ( $dir ) {
+			return is_dir( $dir ) ? array_values( array_diff( scandir( $dir ), array( '.', '..', 'index.php' ) ) ) : array();
+		};
+		$prima = $lista();
 		$tmp = tempnam( sys_get_temp_dir(), 'apacpdf' );
 		file_put_contents( $tmp, "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << >>\n%%EOF\n" );
 		$s = Fx::admin();
@@ -83,8 +87,7 @@ T::test(
 			unlink( $tmp );
 		}
 		T::eq( 'db_error', Http::msg( $r ), 'esito' );
-		$files = is_dir( $dir ) ? array_values( array_diff( scandir( $dir ), array( '.', '..', 'index.php' ) ) ) : array();
-		T::eq( array(), $files, 'file rimasti nella cartella dell\'azienda' );
+		T::eq( $prima, $lista(), 'file nuovi rimasti nella cartella dell\'azienda' );
 		T::eq( '0', Db::val( "SELECT COUNT(*) FROM wp_apac_documenti WHERE azienda_id = {$a}" ), 'righe documenti' );
 	}
 );
@@ -140,5 +143,55 @@ T::test(
 		T::eq( 'tx_unsupported', $msg, 'esito' );
 		T::eq( $before, $after, 'dati cambiati senza transazione' );
 		T::ok( false !== strpos( $page, 'wp_apac_attestati' ), 'la pagina impostazioni deve indicare la tabella non transazionale' );
+	}
+);
+
+T::test(
+	'transazioni: con una tabella non InnoDB compare anche l\'avviso in bacheca',
+	function () {
+		Db::q( 'ALTER TABLE wp_apac_scadenze ENGINE=MyISAM' );
+		try {
+			$body = Fx::admin()->get( T::$env['url'] . '/wp-admin/index.php' )['body'];
+		} finally {
+			Db::q( 'ALTER TABLE wp_apac_scadenze ENGINE=InnoDB' );
+		}
+		T::ok( false !== strpos( $body, 'salvataggi bloccati' ) && false !== strpos( $body, 'convertite in InnoDB' ), 'avviso in bacheca mancante' );
+		$body = Fx::admin()->get( T::$env['url'] . '/wp-admin/index.php' )['body'];
+		T::ok( false === strpos( $body, 'salvataggi bloccati' ), 'avviso presente con tutte le tabelle InnoDB' );
+	}
+);
+
+T::test(
+	'transazioni: stato delle tabelle NON verificabile = salvataggi bloccati, avviso in bacheca e spiegazione nelle impostazioni',
+	function () {
+		$a      = Fx::azienda( 'NonVerif ' . bin2hex( random_bytes( 3 ) ) );
+		$l      = Fx::lavoratore( $a );
+		$before = Db::fingerprint( array( 'lavoratori' ) );
+		$guasto = '/information_schema\.TABLES/';
+		apac_t_guasto( $guasto );
+		try {
+			$msg = Fx::admin()->op( 'lavoratore_save', array( 'id' => $l, 'nome' => 'Cambiato', 'cognome' => 'X' ), $a );
+		} finally {
+			apac_t_fine_guasto();
+		}
+		T::eq( 'tx_unsupported', $msg, 'esito del salvataggio' );
+		T::eq( $before, Db::fingerprint( array( 'lavoratori' ) ), 'dati cambiati senza verifica delle transazioni' );
+		apac_t_guasto( $guasto );
+		try {
+			$bacheca = Fx::admin()->get( T::$env['url'] . '/wp-admin/index.php' )['body'];
+		} finally {
+			apac_t_fine_guasto();
+		}
+		T::ok( false !== strpos( $bacheca, 'salvataggi bloccati' ) && false !== strpos( $bacheca, 'non è stato possibile verificare' ), 'avviso in bacheca per lo stato non verificabile' );
+		apac_t_guasto( $guasto );
+		try {
+			$imp = Fx::admin()->get( T::$env['url'] . '/wp-admin/options-general.php?page=apac-settings' )['body'];
+		} finally {
+			apac_t_fine_guasto();
+		}
+		T::ok( false !== strpos( $imp, 'salvataggi bloccati' ) && false !== strpos( $imp, 'information_schema' ), 'spiegazione nelle impostazioni' );
+		T::ok( false === strpos( $imp, 'Tipo di database non determinabile automaticamente' ), 'resta il vecchio messaggio generico' );
+		// Tolto il guasto, i salvataggi ripartono.
+		T::eq( 'saved', Fx::admin()->op( 'lavoratore_save', array( 'id' => $l, 'nome' => 'Mario', 'cognome' => 'Ripreso' ), $a ), 'salvataggio dopo il ripristino' );
 	}
 );

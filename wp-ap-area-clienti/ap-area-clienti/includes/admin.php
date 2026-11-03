@@ -236,7 +236,9 @@ function apac_settings_page() {
 			Finché il problema resta, l’area riservata non salva modifiche (la consultazione funziona). Disattiva e riattiva il plugin per convertirle; se il problema resta, chiedi al fornitore di hosting di convertirle in InnoDB.
 			<?php if ( is_array( $txe ) && ! empty( $txe['errori'] ) ) : ?><br>Errore della conversione automatica: <?php echo esc_html( implode( '; ', array_map( function ( $t, $e ) { return $t . ': ' . $e; }, array_keys( $txe['errori'] ), $txe['errori'] ) ) ); ?><?php endif; ?></p></div>
 		<?php else : ?>
-			<div class="notice notice-info inline"><p>Tipo di database non determinabile automaticamente.</p></div>
+			<div class="notice notice-error inline"><p><strong>ATTENZIONE: salvataggi bloccati.</strong> Non è stato possibile verificare il tipo delle tabelle del database (interrogazione di <code>information_schema</code> non riuscita).
+			Senza questa verifica il plugin non può garantire che un’operazione interrotta venga annullata per intero, quindi l’area riservata non salva modifiche (la consultazione funziona).
+			Ricarica questa pagina; se il messaggio resta, chiedi al fornitore di hosting di verificare che l’utente del database possa leggere <code>information_schema.TABLES</code> e che le tabelle <code><?php echo esc_html( $GLOBALS['wpdb']->prefix ); ?>apac_*</code> siano InnoDB.</p></div>
 		<?php endif; ?>
 
 		<?php $mig = get_option( 'apac_migration_error' ); ?>

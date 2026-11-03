@@ -1,4 +1,4 @@
-AP AREA CLIENTI – versione 1.9.15
+AP AREA CLIENTI – versione 1.9.16
 =================================
 
 Plugin WordPress per l'area riservata delle aziende clienti di AP Sicurezza Lavoro.
@@ -288,5 +288,19 @@ NOVITÀ 1.9.15 – solidità del codice (nessuna modifica visibile nell'uso quot
   ora controllato.
 - File riorganizzati per area (documenti, utenti, notifiche, importazione, scadenze…) al posto dei file per
   versione: codice delle funzioni identico, verificato automaticamente.
-- Test automatici e analisi statica nel repository di sviluppo (non inclusi nel pacchetto del plugin).
+- Test automatici e analisi statica: non sono nel pacchetto da installare; vedi «VERIFICHE» nella 1.9.16.
 - Nessuna modifica al database (resta versione 14).
+
+NOVITÀ 1.9.16
+- Salvataggi bloccati anche quando il tipo delle tabelle NON è verificabile (era già così nella 1.9.15), ma ora
+  lo si vede: avviso in bacheca anche in questo caso e, in Impostazioni > Area Clienti > Integrità dei dati,
+  la spiegazione di cosa controllare (prima: «Tipo di database non determinabile automaticamente»).
+  Blocco e avvisi usano la stessa condizione, così non possono più divergere.
+- Nessuna modifica al database (resta versione 14).
+
+VERIFICHE (test e analisi statica)
+- Il pacchetto da installare contiene solo il plugin. Test, configurazioni dell'analisi statica e risultati sono nel
+  «pacchetto di sviluppo» (ap-area-clienti-<versione>-sviluppo.zip, file RISULTATI-VERIFICHE.md) e nel repository
+  GitHub kalut001/ekateapp1, cartella wp-ap-area-clienti, con le esecuzioni della CI (GitHub Actions).
+- Chiunque può ripeterli: istruzioni in README.md del pacchetto di sviluppo (servono PHP, Composer e un database
+  MySQL/MariaDB di prova). Con APAC_TEST_PLUGIN_DIR i test si eseguono sulla cartella estratta da questo zip.

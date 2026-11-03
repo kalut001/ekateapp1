@@ -62,4 +62,24 @@ composer lint && composer phpstan && composer phpcs
   `tests/phpcs-baseline.json`; `bin/phpcs-check.php` fallisce solo su quelle nuove. Dopo aver verificato una nuova
   segnalazione: `php bin/phpcs-check.php --update`.
 
-La CI (`.github/workflows/ap-area-clienti.yml`) esegue analisi statica e test su PHP 7.4 e 8.3 con MariaDB 10.11.
+## Verifica completa e risultati
+
+```bash
+bin/verifiche.sh
+```
+
+Esegue in sequenza sintassi, PHPStan, PHPCS, test sul plugin del repository, test sul plugin **estratto dallo zip**,
+aggiornamento dalla 1.9.13 originale con dati esistenti (`tests/fixtures/ap-area-clienti-1.9.13.zip`) e mutazioni,
+e scrive `build/RISULTATI-VERIFICHE.md` con tutti gli output, il commit e l'impronta SHA-256 dello zip.
+
+- **Mutazioni** (`bin/mutation-check.php`): tolgono uno per volta i controlli di sicurezza (isolamento, revoca, ruoli,
+  permessi, sola consultazione, firme, nonce e percorsi dei download, registro, transazioni, rollback, doppi invii,
+  richieste di accesso). Per ognuno almeno un test deve fallire: è la misura della copertura dei test.
+- **Provare uno zip**: estrarlo e indicare la cartella con `APAC_TEST_PLUGIN_DIR=/percorso/ap-area-clienti bin/test-env.sh`.
+- **Pacchetto di sviluppo** (plugin + test + strumenti + rapporto): `bin/build-dev-zip.sh`.
+
+## CI
+
+`.github/workflows/ap-area-clienti.yml`: a ogni push analisi statica e test su PHP 7.4 e 8.3 con MariaDB 10.11.
+Avviandolo a mano (Actions › AP Area Clienti › Run workflow) esegue anche `bin/verifiche.sh` e pubblica come artefatti
+il rapporto e i pacchetti.

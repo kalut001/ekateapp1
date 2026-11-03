@@ -485,6 +485,14 @@ function apac_tx_tabelle_problema( $refresh = false ) {
  * Stato del supporto alle transazioni, per la pagina impostazioni.
  * 'si' = tutte InnoDB; 'no' = almeno una tabella senza transazioni; '' = non determinabile.
  */
+/**
+ * 1.9.16 – Unica condizione che blocca i salvataggi (usata dal blocco e da tutti gli avvisi, così non
+ * possono divergere): una tabella del plugin non transazionale OPPURE stato non verificabile.
+ */
+function apac_tx_salvataggi_bloccati() {
+	return array() !== apac_tx_tabelle_problema();
+}
+
 function apac_tx_support() {
 	$p = apac_tx_tabelle_problema();
 	if ( null === $p ) {
