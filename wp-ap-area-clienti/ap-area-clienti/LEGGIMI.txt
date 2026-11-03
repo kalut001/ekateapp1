@@ -1,0 +1,253 @@
+AP AREA CLIENTI – versione 1.9.13
+=================================
+
+Plugin WordPress per l'area riservata delle aziende clienti di AP Sicurezza Lavoro.
+
+FUNZIONI
+- Stesso aspetto del sito: colori, caratteri, testate e riquadri copiati dalle pagine del sito
+- Pulsante "Area riservata" nella barra verde in alto (e nel menu del telefono)
+- Login con email e password (gli account li crea solo l'amministratore)
+- Dashboard con riepilogo, prossime scadenze e criticità
+- Scheda azienda e figure della sicurezza (RSPP, RLS/RLST, medico competente, addetti emergenze)
+- Lavoratori, mansioni e attestati di formazione con scadenze
+- Archivio documenti protetto: caricamento, consultazione e download
+- Scadenzario con avvisi email automatici (30 giorni, 7 giorni, alla scadenza)
+- Segnalazioni dai clienti con risposta dello studio
+- Analisi automatica delle criticità sui dati inseriti (D.Lgs. 81/2008)
+- Gestione aziende e utenti (solo amministratore)
+
+AMMINISTRATORE (account WordPress con ruolo Amministratore)
+- Entra dalla stessa pagina dei clienti (/area-riservata/) con le proprie credenziali
+- "Studio": situazione di tutte le aziende, scadenze, segnalazioni da gestire, ultime attività
+- Campo "Cerca o scegli un'azienda": vede e modifica ogni azienda come la vede il cliente
+- Modifica di attestati, documenti (anche sostituzione del file), scadenze, utenti (nome, email, azienda collegata)
+- Invio al cliente del link per reimpostare la password; eliminazione delle segnalazioni
+- Permessi per azienda: cosa può modificare il cliente (scheda azienda, lavoratori, scadenze, documenti)
+- Registro attività: chi ha fatto cosa e quando
+
+INSTALLAZIONE
+1. Bacheca WordPress > Plugin > Aggiungi nuovo > Carica plugin > scegli ap-area-clienti.zip > Installa > Attiva.
+2. All'attivazione viene creata la pagina "Area riservata" (indirizzo /area-riservata/).
+3. Impostazioni > Area Clienti: controlla che la protezione dei documenti risulti "OK".
+4. Il pulsante "Area riservata" compare in automatico nella barra superiore e nel menu del telefono.
+   Posizione e testo si cambiano da Impostazioni > Area Clienti. In alternativa: shortcode [ap_area_riservata].
+5. Se modifichi l'aspetto del sito: Impostazioni > Area Clienti > "Riallinea lo stile al sito".
+
+PRIMO UTILIZZO
+1. Apri /area-riservata/ da amministratore > "Utenti e aziende" > "Nuova azienda".
+2. Nella stessa sezione, accanto all'azienda, "Utenti" > "Nuovo accesso": il cliente riceve un'email per scegliere la password.
+3. Il cliente vede SOLO i dati della propria azienda.
+
+SICUREZZA E PRIVACY
+- I documenti sono salvati fuori dalla cartella pubblica del sito (se il server lo consente) oppure in una cartella protetta; si scaricano solo dopo il controllo dell'accesso.
+- Tipi di file ammessi: PDF, Word, Excel, OpenDocument, JPG, PNG.
+- Non caricare certificati medici, giudizi di idoneità o altri dati sanitari.
+- Aggiornare l'informativa privacy del sito prima di aprire l'area ai clienti.
+- Disattivare il plugin NON cancella dati e documenti.
+
+AFFIDABILITÀ (1.4.0)
+- Ogni operazione è "tutto o niente": se il database fallisce nulla viene salvato, l'utente vede un errore
+  e i file appena caricati vengono rimossi. I file sostituiti o eliminati si cancellano solo a salvataggio confermato.
+- Email (avvisi, nuova password, nuovi utenti): l'esito viene verificato; gli avvisi non consegnati vengono ritentati.
+- Caricamenti consentiti solo se la protezione della cartella documenti è dimostrata (ricontrollo ogni 12 ore).
+- Attestati: data di conseguimento obbligatoria, scadenza successiva al conseguimento o "Corso senza scadenza";
+  un nuovo attestato dello stesso corso rinnova il precedente, che resta nello storico come "Rinnovato".
+- Utenti: "Revoca accesso" sospende l'accesso senza eliminare l'account; l'eliminazione definitiva è separata.
+
+NOTA
+L'analisi delle criticità segnala dati mancanti o scaduti: non è una verifica di conformità
+e non sostituisce la valutazione del datore di lavoro, dell'RSPP e dei professionisti competenti.
+
+NOVITÀ 1.5.0
+- Moduli: dopo un errore i dati inseriti restano compilati e l'errore compare accanto al campo; per gli allegati viene chiesto di riselezionare il file.
+- Storico: gli account eliminati compaiono come "Utente eliminato (cliente/studio)", distinti da "Autore sconosciuto"; si conserva solo numero e ruolo.
+- Email: mittente reale (Impostazioni > Area Clienti > Invio delle email), invio facoltativo tramite SMTP autenticato della casella (Register: authsmtp.securemail.pro, porta 465, SSL), password cifrata, pulsante "email di prova".
+- Avvisi scadenze: esito registrato per ogni destinatario, ritentativi giornalieri (max 5), nessun doppio invio tra controllo automatico e manuale; modificare note o descrizione non fa ripartire gli avvisi, cambiare la data o riaprire sì.
+- Controllo alle 07:00 nel fuso orario del sito, corretto anche al cambio dell'ora legale.
+- Protezione documenti: verifica con file di controllo pubblico, certificato TLS verificato, redirect ed errori = "non verificabile"; se la cartella dei documenti scompare i caricamenti si bloccano (nessun ripiego su altre cartelle).
+- Validazione: partita IVA, codice fiscale, email, PEC, telefono, provincia, lunghezze, valori ammessi, date errate/mancanti, corsi senza scadenza.
+- Database: la versione si aggiorna solo se tutte le tabelle e colonne risultano presenti; requisiti del server mostrati nelle impostazioni.
+- Anti-cache su ogni pagina con lo shortcode [ap_area_clienti]; elenco delle esclusioni per cache e CDN nelle impostazioni.
+- Pulsante: con "Nessuno" sparisce sia dal menu sia dalla barra superiore.
+- Aziende: ordine alfabetico (maiuscole e accenti indifferenti), campo "Cerca azienda" (ragione sociale, P.IVA, C.F.) con risultati a pagine, utilizzabile da tastiera, telefono e anche senza JavaScript; ricerca riservata agli amministratori.
+
+NOVITÀ 1.6.0 – 1.8.1 (in sintesi)
+- 1.6.0: menu laterale su computer e barra in basso sul telefono, moduli che si aprono con un pulsante.
+- 1.7.0: accessi in sola consultazione, scadenze ricorrenti, versioni dei documenti, foto nelle segnalazioni,
+  importazione/esportazione Excel, ricerca nei dati, notifiche sul telefono (web push), firma dei documenti
+  (presa visione), corsi richiesti per mansione, completezza dei dati, riepilogo stampabile.
+- 1.7.1: titoli e descrizioni per i motori di ricerca, codice di verifica di Google Search Console.
+- 1.7.2–1.7.3: firma dell'informativa privacy e dell'accordo art. 28 GDPR al primo accesso; i documenti
+  firmati (PDF) si trovano nella pagina Documenti di ciascuna azienda.
+- 1.7.4: PDF firmato con logo e dati di AP Sicurezza Lavoro.
+- 1.8.0: schermate più compatte (riepilogo "Da fare", aziende su una riga, documenti a righe).
+- 1.8.1: pulsante "Svuota registro" (solo studio, con conferma ELIMINA).
+
+NOVITÀ 1.9.0 – interfaccia
+- Dopo l'accesso l'area riservata ha una propria intestazione (logo, sezione, "+ Aggiungi", menu account con
+  Aspetto e notifiche, "Vai al sito", "Esci"); intestazione e piè di pagina del sito restano nelle pagine pubbliche
+  e nella pagina di accesso.
+- Un solo titolo per pagina; nomi delle sezioni uguali su computer e telefono (Studio, Riepilogo azienda, Dati azienda,
+  Lavoratori, Documenti, Scadenze, Segnalazioni, Criticità, Cerca nei dati).
+- Studio: un solo campo "Cerca o scegli un'azienda" (elenco alfabetico al tocco, ricerca per ragione sociale,
+  P.IVA o codice fiscale, funziona anche senza JavaScript); cambiando azienda si resta nella stessa sezione.
+- "+ Azienda" nello Studio, "+ Aggiungi" dentro l'azienda (solo le voci permesse; il server ricontrolla i permessi).
+- "Installa l'app (clienti)" (link, WhatsApp, QR) è una pagina del menu dello Studio.
+- Contatori cliccabili: aprono l'elenco filtrato con le stesse voci conteggiate; filtri attivi indicati sopra
+  gli elenchi, rimovibili uno per uno, con "Azzera filtri"; elenchi vuoti distinti da "nessun risultato".
+- Moduli più brevi: dati essenziali aperti, il resto in gruppi che si riaprono da soli se contengono un errore.
+- Lavoratori e scadenze a righe compatte; "Segna come cessato" con data (lo storico resta) e "Riporta in forza";
+  "Segna completata" sempre visibile; "Riapri" per le scadenze completate.
+- "Primi passi" per le aziende nuove (lo studio può segnare un passo "Non applicabile" o nascondere la guida).
+  La guida indica solo i dati inseriti: non è una verifica di conformità.
+- Messaggi di conferma precisi, pulsante bloccato durante l'invio, avviso se si lascia un modulo non salvato.
+- "Riepilogo dati e scadenze (PDF)" con data di generazione: non è una certificazione di conformità.
+
+NOVITÀ 1.9.1 – correzioni dopo la revisione del codice
+- Doppi invii: ogni modulo ha un codice monouso registrato in un solo passaggio su una chiave unica del database;
+  di due invii contemporanei ne passa uno solo. Se l'operazione fallisce il codice si libera e il modulo
+  corretto si può reinviare.
+- Scadenze ricorrenti: la successiva creata in automatico è collegata all'originale; riaprendo si elimina solo
+  quella collegata e non modificata (mai una scadenza inserita a mano).
+- Prestazioni: i riepiloghi dello Studio leggono i dati di tutte le aziende con poche interrogazioni complessive;
+  l'analisi delle criticità si ricalcola solo quando cambiano i dati dell'azienda o cambia il giorno, e viene
+  preparata dal controllo giornaliero. Prova con 200 aziende: pannello da 3.835 a 48 interrogazioni.
+- Database versione 8 (colonne data_cessazione e origine_id, tabella dei codici monouso): aggiornamento automatico.
+
+NOVITÀ 1.9.2 – salvataggi contemporanei
+- Un invio senza codice monouso valido, o con il database che non riesce a registrarlo, viene bloccato
+  ("ricarica la pagina e riprova"): nessuna operazione viene eseguita senza protezione dai doppi invii.
+- La versione dei dati di ogni azienda è una colonna aumentata con una sola istruzione del database:
+  salvataggi contemporanei non possono far perdere l'aggiornamento dei riepiloghi dello Studio.
+- "Segna completata" / "Riapri" indicano lo stato atteso: da una finestra rimasta aperta non si riapre per errore
+  una scadenza già completata (messaggio "era già stata completata").
+- Una scadenza salvata a mano viene segnata come modificata e non viene mai eliminata in automatico.
+- Impostazioni > Area Clienti > "Misura delle prestazioni": interrogazioni e tempi delle pagine dello Studio
+  misurati sul sito reale.
+- Database versione 9 (colonne dati_ver e modificata): aggiornamento automatico.
+
+NOVITÀ 1.9.3 – cambi di stato atomici
+- "Segna completata" / "Riapri": lo stato cambia solo se nel database è ancora quello atteso, in un'unica
+  istruzione. Due invii nello stesso istante (due schede) non creano più due scadenze successive.
+- Riapertura: la successiva automatica si elimina solo se, al momento dell'eliminazione, è ancora aperta e non
+  salvata a mano; se un'altra scheda l'ha appena modificata o completata, resta.
+- Versione dei dati dell'azienda aumentata nella stessa transazione del salvataggio, con esito controllato:
+  se l'aumento non riesce, il salvataggio viene annullato ("errore del database") invece di lasciare
+  riepiloghi dello Studio non aggiornati.
+- Messaggio per il modulo inviato due volte: non afferma più "operazione già eseguita", invita a controllare.
+- Nessuna modifica al database (versione 9).
+
+NOVITÀ 1.9.4 – correzioni dopo la seconda revisione
+- Modifiche non salvate: inviare una ricerca (o un altro modulo) mentre un modulo è compilato a metà mostra
+  l'avviso "Modifiche non salvate" invece di uscire perdendo i dati; "Resta qui" lascia attivo l'avviso.
+- Nuovo pulsante "Salva e continua" nell'avviso: salva il modulo e apre la pagina scelta (solo pagine
+  dello stesso sito). Se il salvataggio non riesce si torna al modulo con i dati e l'errore indicati.
+- Doppi invii: ogni codice monouso registra l'esito. "Già inviato" compare solo se il primo invio è davvero
+  andato a buon fine; se è ancora in corso compare "in elaborazione" (ripresa a tempo: sostituita nella 1.9.5).
+- Importazione Excel: la dimensione viene controllata prima di decomprimere il file (limite 8 MB di dati
+  del foglio, ampiamente sufficienti per 2.000 righe): un file molto compresso non può esaurire la memoria.
+- Lavoratori: la data di cessazione non può essere precedente all'assunzione (scheda e "Segna come cessato").
+- Dopo un errore i dati del modulo restano disponibili per 10 minuti anche ricaricando la pagina; vengono
+  eliminati appena lo stesso modulo viene salvato con successo.
+- Database versione 10 (colonna "esito" dei codici monouso): aggiornamento automatico.
+
+NOVITÀ 1.9.5 – importazione e invii contemporanei
+- Doppi invii: chi elabora un modulo tiene un lock del database per tutta la richiesta; il database lo
+  rilascia quando la connessione si chiude, anche se la richiesta termina in modo anomalo. Un invio rimasto
+  senza esito viene ripreso SOLO quando quel lock è libero (richiesta precedente terminata), mai a tempo.
+  Prima di confermare il salvataggio si verifica di avere ancora il lock; altrimenti tutto viene annullato.
+- Aggiornamento: le prenotazioni registrate prima della 1.9.5 sono trattate come "esito sconosciuto": reinviando
+  un vecchio modulo non viene eseguito nulla e non viene dichiarato riuscito; si chiede di ricaricare e controllare.
+- Importazione: massimo 100 colonne e 2.000 righe. In Excel le celle oltre la colonna CV sono ignorate senza
+  crearle; un riferimento di cella malformato rende il file non valido. (CSV: vedi 1.9.6.)
+- Database versione 11 (nessuna nuova colonna).
+
+NOVITÀ 1.9.6 – CSV su più righe e aggiornamento ripetibile
+- CSV: nuova lettura che applica il limite di 100 colonne e 2.000 righe sui record CSV (anche con campi su più
+  righe tra virgolette) mentre legge: le colonne in più non vengono mai memorizzate. Su 2.000 file di prova
+  generati con le regole CSV standard il risultato è identico alla lettura precedente.
+- Aggiornamento del database: nessuna marcatura di massa delle prenotazioni. La 1.9.5/1.9.6 scrive valori di
+  esito propri (3 = prenotato, 4 = riuscito); i valori delle versioni precedenti (0, 1, 2) sono riconosciuti
+  come "esito sconosciuto". Un aggiornamento interrotto e ripetuto non tocca le prenotazioni nuove.
+- Database: resta versione 11.
+
+NOVITÀ 1.9.7
+- Tema scuro: anche lo sfondo della pagina diventa scuro, così sotto un contenuto corto non resta una fascia
+  bianca sopra la barra in basso (tema scuro scelto, oppure "automatico" con il dispositivo in modalità scura).
+
+NOVITÀ 1.9.8
+- Scadenze ricorrenti: il rinnovo automatico tiene conto del lavoratore. Due scadenze uguali (stesso titolo e data)
+  di lavoratori diversi generano ciascuna il proprio rinnovo; prima il secondo lavoratore restava senza.
+- Importazione: una riga con stesso lavoratore, stesso corso e stessa data di una riga precedente dello stesso file
+  non viene importata di nuovo (avviso nell'anteprima). Prima nascevano due attestati uguali e uno risultava "Rinnovato".
+- Nessuna modifica al database.
+
+NOVITÀ 1.9.9
+- Importazione: righe dello stesso attestato (stessa persona, corso e data di conseguimento) con la stessa
+  scadenza = duplicato, importato una volta; con scadenze diverse = conflitto: nell'anteprima si sceglie quale
+  riga tenere (o di non importarlo) e la conferma è bloccata finché non si sceglie. Un attestato già presente
+  con scadenza diversa non viene sovrascritto: va corretto nella scheda del lavoratore.
+- Ricorrenze: ogni scadenza appartiene a una serie (serie_id = prima scadenza della serie). Rinnovo e
+  riapertura agiscono solo sulla propria serie; scadenze simili dello stesso lavoratore restano indipendenti.
+  NB: una scadenza inserita a mano uguale al rinnovo non lo blocca più (appartiene a un'altra serie).
+- Salvataggi: se la risposta tarda oltre 15 secondi compare l'invito a non reinviare; se la conferma non arriva
+  (rete interrotta) la pagina successiva spiega come controllare se il dato è stato salvato.
+- Navigazione: "Tutte le aziende" (Studio) distinto da "Riepilogo azienda"; menu "Altro" diviso in
+  Azienda / Studio / Account, con Documenti per primo.
+- Accesso del cliente: etichetta "Solo consultazione" e riquadro "Il tuo accesso" con cosa si può fare.
+- Notifiche: stati "da autorizzare", "autorizzate ma non attive", "attive", "bloccate" con istruzioni.
+- Campi file: formati ammessi e dimensione massima indicati sotto il campo. Plurali corretti ("1 attestato").
+- Database versione 12 (colonna serie_id e indici): aggiornamento automatico.
+
+WEB APP: CHI FA COSA
+- Plugin "AP Sicurezza PWA": manifest (nome, icone, colore dell'app) e, fuori dall'area riservata, il riquadro
+  di installazione.
+- AP Area Clienti: nell'area riservata è l'unico service worker (registrazione, aggiornamenti, pagina offline),
+  il riquadro "Installa l'app" e le notifiche sul telefono. Dalla 1.9.9 lo script di registrazione del plugin
+  PWA non viene caricato nelle pagine dell'area riservata, per evitare due service worker sullo stesso ambito.
+
+NOVITÀ 1.9.10
+- Riapertura di antenati: non duplica rinnovi già completati o modificati; nessun falso messaggio di creazione.
+- Database 13: ricostruzione ripetibile delle serie storiche fino alla radice, con protezione da cicli e collegamenti fra aziende.
+- Limite importazione mostrato coerente con 5 MB e con il limite inferiore del server; istruzioni 2000 righe.
+- Corretto il testo del primo inserimento azienda.
+
+NOVITÀ 1.9.11
+- Testo corretto quando non ci sono aziende: "Compila «Nuova azienda» qui sopra" (il riquadro è sopra ed è già aperto).
+- Terminazioni di riga uniformate in tutti i file di testo.
+- Nessuna modifica al database (resta versione 13).
+
+NOVITÀ 1.9.12 – dai collaudi sul sito
+- Nomi dei file scaricati (Excel, CSV, documenti, firme): niente più caratteri illeggibili con trattini, accenti o
+  apostrofi nel nome dell'azienda; il nome originale resta disponibile per i browser che lo supportano.
+- Excel esportato: le date sono date vere (ordinabili e filtrabili), formato gg/mm/aaaa; il file si reimporta
+  senza perdere le date.
+- Riepilogo stampabile: in stampa compaiono la barra di completezza e i colori delle etichette; elenco senza
+  doppio simbolo. Il link si chiama "Riepilogo dati e scadenze (stampa o PDF)".
+- Nessuna modifica al database (resta versione 13).
+
+NOVITÀ 1.9.13 – richiesta di accesso e notifiche dal computer
+- «Richiedi accesso» nella pagina di accesso (link: area-riservata/?accesso=richiedi). Il richiedente inserisce
+  i dati dell'azienda e i propri; la richiesta NON crea nulla finché:
+  1) il richiedente la conferma dal link ricevuto per email (vale 48 ore, si conferma con un pulsante, così i
+     programmi che controllano i link nelle email non la confermano da soli);
+  2) lo studio la approva in «Richieste di accesso» (menu Studio, con contatore). Approvando si crea in un solo
+     passaggio l'azienda (dati correggibili, permessi a scelta) oppure si collega a un'azienda esistente, e si
+     crea l'accesso con la procedura di sempre (email per la password, firme al primo accesso).
+- Lavoratori, attestati e documenti si caricano solo dopo l'accesso e dopo la firma dell'accordo art. 28.
+- A video la risposta è sempre «controlla la tua email»: il sito non rivela se un indirizzo ha già un account
+  (il proprietario dell'indirizzo riceve l'avviso per email).
+- Partita IVA controllata anche nella cifra di controllo; avviso allo studio se la partita IVA è già di
+  un cliente, se l'email ha già un account o se c'è stato un rifiuto recente.
+- Rifiuto con motivo facoltativo (email al richiedente); per 30 giorni la stessa email o partita IVA non può
+  inviare nuove richieste online. «Elimina senza avvisare» per lo spam.
+- Antispam: campo trappola, tempo minimo di compilazione, massimo 10 invii l'ora per indirizzo, modulo sospeso
+  oltre 50 richieste aperte. Due approvazioni contemporanee: ne passa una sola.
+- Pulizia automatica: richieste mai confermate dopo 7 giorni, richieste gestite dopo 90 giorni. Le richieste in
+  attesa dello studio non vengono mai cancellate da sole.
+- Clienti: in «Dati azienda» c'è «Accesso per un collega»; la richiesta va sempre approvata dallo studio.
+- Notifiche dal computer: la prova registra di nuovo il dispositivo sul server (prima falliva con «(0)» se
+  l'iscrizione sul server mancava), rifà l'iscrizione se il browser la rifiuta (chiave diversa, scaduta,
+  revocata) e mostra il motivo dell'errore. Messaggio specifico per Brave.
+- Database versione 14 (nuova tabella «richieste»), aggiornamento automatico e ripetibile.
+- DA FARE NELL'INFORMATIVA PRIVACY DEL SITO: aggiungere il trattamento dei dati delle richieste di accesso.

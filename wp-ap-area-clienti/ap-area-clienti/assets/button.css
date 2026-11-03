@@ -1,0 +1,129 @@
+/*
+ * Pulsante "Area riservata" nel menu e shortcode [ap_area_riservata].
+ * Stile coordinato con il pulsante "Richiedi un preventivo" dell'intestazione:
+ * stessa altezza, carattere maiuscolo e angoli; versione "a contorno" verde su
+ * intestazione bianca, gialla nel menu mobile scuro.
+ */
+:root {
+	--apac-btn-g: #193E0C;
+	--apac-btn-gd: #061C03;
+	--apac-btn-y: #FDE117;
+	--apac-btn-y2: #F4C107;
+}
+
+/* Intestazione (computer) */
+.ct-header [data-id="menu"] > ul > li.apac-menu-button,
+li.apac-menu-button {
+	display: flex;
+	align-items: center;
+}
+.ct-header [data-id="menu"] > ul > li.apac-menu-button > a.ct-menu-link,
+li.apac-menu-button > a {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 7px;
+	height: 46px !important;
+	min-height: 46px;
+	margin-inline-start: 12px;
+	padding: 0 18px !important;
+	border: 2px solid var(--apac-btn-g) !important;
+	border-radius: 8px;
+	background: transparent !important;
+	color: var(--apac-btn-g) !important;
+	font-size: 13px !important;
+	font-weight: 800 !important;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	white-space: nowrap;
+	text-decoration: none;
+	transition: background-color .2s, color .2s, border-color .2s;
+}
+.ct-header [data-id="menu"] > ul > li.apac-menu-button > a.ct-menu-link:hover,
+.ct-header [data-id="menu"] > ul > li.apac-menu-button > a.ct-menu-link:focus-visible,
+.ct-header [data-id="menu"] > ul > li.apac-menu-button.current-menu-item > a.ct-menu-link,
+li.apac-menu-button > a:hover,
+li.apac-menu-button > a:focus-visible {
+	background: var(--apac-btn-g) !important;
+	border-color: var(--apac-btn-g) !important;
+	color: #fff !important;
+}
+/* Niente sottolineatura gialla animata delle voci di menu */
+.ct-header [data-id="menu"] > ul > li.apac-menu-button > a.ct-menu-link::after,
+li.apac-menu-button > a::after,
+li.apac-menu-button > a::before {
+	display: none !important;
+}
+li.apac-menu-button > a svg {
+	flex: 0 0 auto;
+}
+
+/* Menu mobile (pannello scuro) */
+.mobile-menu li.apac-menu-button,
+#offcanvas li.apac-menu-button {
+	margin-top: 18px;
+}
+.mobile-menu li.apac-menu-button > a,
+.mobile-menu li.apac-menu-button > a.ct-menu-link,
+#offcanvas li.apac-menu-button > a {
+	width: 100%;
+	justify-content: center;
+	margin: 0;
+	height: 52px !important;
+	border-color: var(--apac-btn-y) !important;
+	color: var(--apac-btn-y) !important;
+	font-size: 15px !important;
+}
+.mobile-menu li.apac-menu-button > a:hover,
+.mobile-menu li.apac-menu-button.current-menu-item > a,
+#offcanvas li.apac-menu-button > a:hover {
+	background: var(--apac-btn-y) !important;
+	color: var(--apac-btn-gd) !important;
+}
+
+/* Shortcode [ap_area_riservata] */
+.apac-area-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 14px 26px;
+	border-radius: 8px;
+	background: var(--apac-btn-y);
+	color: var(--apac-btn-gd) !important;
+	font-weight: 800;
+	font-size: 16px;
+	letter-spacing: .02em;
+	text-decoration: none !important;
+	box-shadow: 0 6px 18px rgba(253, 225, 23, .28);
+	transition: background .2s;
+}
+.apac-area-btn:hover {
+	background: var(--apac-btn-y2);
+}
+
+/* Pulsante nella barra superiore verde (.aps-topbar del sito) */
+.aps-topbar .apac-tb-area {
+	margin-inline-start: auto;
+	padding: 4px 14px;
+	border: 1.5px solid var(--apac-btn-y);
+	border-radius: 999px;
+	color: var(--apac-btn-y) !important;
+	font-weight: 800;
+	letter-spacing: .02em;
+	white-space: nowrap;
+	transition: background-color .2s, color .2s;
+}
+.aps-topbar .apac-tb-area svg { color: currentColor; }
+.aps-topbar .apac-tb-area:hover,
+.aps-topbar .apac-tb-area:focus-visible,
+.aps-topbar .apac-tb-area.is-current {
+	background: var(--apac-btn-y);
+	color: var(--apac-btn-gd) !important;
+}
+/* Con il pulsante in barra, la voce del menu resta solo nel menu del telefono */
+.apac-topbar-btn .ct-header [data-device="desktop"] li.apac-menu-button {
+	display: none !important;
+}
+@media (max-width: 999px) {
+	.aps-topbar .apac-tb-area { margin-inline-start: 0; }
+}
