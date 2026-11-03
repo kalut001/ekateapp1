@@ -231,7 +231,10 @@ function apac_settings_page() {
 		<?php if ( 'si' === $txs ) : ?>
 			<div class="notice notice-success inline"><p><strong>OK:</strong> le tabelle usano InnoDB: un’operazione interrotta a metà viene annullata per intero.</p></div>
 		<?php elseif ( 'no' === $txs ) : ?>
-			<div class="notice notice-error inline"><p><strong>ATTENZIONE:</strong> alcune tabelle non supportano le transazioni. Disattiva e riattiva il plugin per convertirle; se il problema resta, contatta il fornitore di hosting.</p></div>
+			<?php $txp = apac_tx_tabelle_problema(); $txe = get_option( 'apac_tx_problemi' ); ?>
+			<div class="notice notice-error inline"><p><strong>ATTENZIONE: salvataggi bloccati.</strong> Queste tabelle non supportano le transazioni, quindi un’operazione interrotta non potrebbe essere annullata: <code><?php echo esc_html( implode( ', ', array_map( function ( $t, $e ) { return $t . ' (' . ( '' !== $e ? $e : 'assente' ) . ')'; }, array_keys( (array) $txp ), (array) $txp ) ) ); ?></code>.
+			Finché il problema resta, l’area riservata non salva modifiche (la consultazione funziona). Disattiva e riattiva il plugin per convertirle; se il problema resta, chiedi al fornitore di hosting di convertirle in InnoDB.
+			<?php if ( is_array( $txe ) && ! empty( $txe['errori'] ) ) : ?><br>Errore della conversione automatica: <?php echo esc_html( implode( '; ', array_map( function ( $t, $e ) { return $t . ': ' . $e; }, array_keys( $txe['errori'] ), $txe['errori'] ) ) ); ?><?php endif; ?></p></div>
 		<?php else : ?>
 			<div class="notice notice-info inline"><p>Tipo di database non determinabile automaticamente.</p></div>
 		<?php endif; ?>

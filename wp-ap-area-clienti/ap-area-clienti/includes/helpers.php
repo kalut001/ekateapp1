@@ -297,6 +297,7 @@ function apac_messages() {
 		'reset_sent'   => array( 'ok', 'Email per reimpostare la password inviata.' ),
 		'readonly'     => array( 'error', 'Questa sezione è in sola lettura per il tuo account.' ),
 		'db_error'     => array( 'error', 'Operazione non riuscita per un errore del database: nessuna modifica è stata salvata. Riprova; se il problema persiste contatta lo studio.' ),
+		'tx_unsupported' => array( 'error', 'Salvataggio bloccato: il database del sito in questo momento non garantisce che un’operazione interrotta venga annullata per intero. Nessuna modifica è stata fatta. Avvisa lo studio (Impostazioni › Area Clienti › Integrità dei dati).' ),
 		'cess_before_hire' => array( 'error', 'La data di cessazione è precedente alla data di assunzione: correggi una delle due date. Nessuna modifica è stata salvata.' ),
 		'invalid_date' => array( 'error', 'Una delle date inserite non è valida: nessuna modifica è stata salvata.' ),
 		'date_order'   => array( 'error', 'La data di scadenza deve essere successiva alla data di conseguimento.' ),
@@ -467,10 +468,23 @@ function apac_tx_active() {
 
 function apac_tx_begin() {
 	global $wpdb;
+	// 1.9.15: START TRANSACTION riesce anche su tabelle MyISAM, che però non annullano nulla. Se anche una
+	// sola tabella del plugin non è transazionale (o non si riesce a verificarlo) l'operazione non parte:
+	// meglio nessun salvataggio che un salvataggio a metà.
+	$GLOBALS['apac_tx_non_supportate'] = false;
+	if ( function_exists( 'apac_tx_tabelle_problema' ) && array() !== apac_tx_tabelle_problema() ) {
+		$GLOBALS['apac_tx_non_supportate'] = true;
+		return false;
+	}
 	$s           = apac_tx_state( true );
 	$s['active'] = ( false !== $wpdb->query( 'START TRANSACTION' ) );
 	apac_tx_set( $s );
 	return $s['active'];
+}
+
+/** Codice del messaggio quando una transazione non può partire. */
+function apac_tx_errore() {
+	return empty( $GLOBALS['apac_tx_non_supportate'] ) ? 'db_error' : 'tx_unsupported';
 }
 
 /** File appena salvato: verrà cancellato se l'operazione non va a buon fine. */

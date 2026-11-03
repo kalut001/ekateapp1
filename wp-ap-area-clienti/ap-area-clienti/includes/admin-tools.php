@@ -46,39 +46,7 @@ function apac_client_can( $azienda_id, $perm ) {
 	return ! empty( $perms[ $perm ] );
 }
 
-/** Permesso richiesto da un'operazione ('' = nessun permesso specifico). */
-function apac_op_permission( $op ) {
-	$map = array(
-		'azienda_save'      => 'azienda',
-		'lavoratore_save'   => 'lavoratori',
-		'lavoratore_delete' => 'lavoratori',
-		'lavoratore_cessa'  => 'lavoratori',
-		'lavoratore_riattiva' => 'lavoratori',
-		'attestato_save'    => 'lavoratori',
-		'attestato_update'  => 'lavoratori',
-		'attestato_delete'  => 'lavoratori',
-		'scadenza_save'     => 'scadenze',
-		'scadenza_toggle'   => 'scadenze',
-		'scadenza_delete'   => 'scadenze',
-		'documento_upload'  => 'documenti',
-		'documento_update'  => 'documenti',
-		'documento_delete'  => 'documenti',
-		'import_preview'    => 'lavoratori',
-		'import_confirm'    => 'lavoratori',
-	);
-	return isset( $map[ $op ] ) ? $map[ $op ] : '';
-}
-
-function apac_op_section( $op ) {
-	$p = apac_op_permission( $op );
-	$map = array(
-		'azienda'    => 'azienda',
-		'lavoratori' => 'lavoratori',
-		'scadenze'   => 'scadenziario',
-		'documenti'  => 'documenti',
-	);
-	return isset( $map[ $p ] ) ? $map[ $p ] : 'dashboard';
-}
+/* 1.9.15: permessi e sezioni delle operazioni sono nel registro unico (includes/operazioni.php). */
 
 function apac_op_azienda_permessi( $azienda_id ) {
 	global $wpdb;

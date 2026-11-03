@@ -411,12 +411,74 @@ function apac_all_tables() {
  */
 function apac_ensure_innodb() {
 	global $wpdb;
+	$errori = array();
 	foreach ( apac_all_tables() as $t ) {
 		$row = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $t ) );
 		if ( $row && isset( $row->Engine ) && 'innodb' !== strtolower( (string) $row->Engine ) ) {
-			$wpdb->query( "ALTER TABLE `{$t}` ENGINE=InnoDB" ); // phpcs:ignore WordPress.DB.PreparedSQL
+			// 1.9.15: l'esito della conversione viene controllato (prima un errore passava inosservato).
+			if ( false === $wpdb->query( "ALTER TABLE `{$t}` ENGINE=InnoDB" ) ) { // phpcs:ignore WordPress.DB.PreparedSQL
+				$errori[ $t ] = (string) $wpdb->last_error;
+			}
 		}
 	}
+	// Esito verificato sul database dopo i tentativi, non dedotto dalle istruzioni eseguite.
+	$problemi = apac_tx_tabelle_problema( true );
+	if ( null === $problemi || $problemi ) {
+		update_option(
+			'apac_tx_problemi',
+			array(
+				'tabelle' => null === $problemi ? array() : $problemi,
+				'errori'  => $errori,
+				'ts'      => time(),
+			),
+			false
+		);
+	} else {
+		delete_option( 'apac_tx_problemi' );
+	}
+	return array() === $problemi;
+}
+
+/**
+ * 1.9.15 – Tabelle del plugin che NON garantiscono il "tutto o niente" (motore diverso da InnoDB o tabella assente).
+ * Una sola interrogazione; il risultato vale per la richiesta in corso (una tabella convertita a mano
+ * viene rilevata alla richiesta successiva, senza attese di cache).
+ *
+ * @param bool $refresh Rilegge dal database anche se già letto in questa richiesta.
+ * @return array<string,string>|null tabella => motore ('' se assente); null se non determinabile.
+ */
+function apac_tx_tabelle_problema( $refresh = false ) {
+	global $wpdb;
+	static $cache = false;
+	if ( false !== $cache && ! $refresh ) {
+		return $cache;
+	}
+	$tabelle  = apac_all_tables();
+	$suppress = $wpdb->suppress_errors( true );
+	$rows     = $wpdb->get_results(
+		$wpdb->prepare(
+			'SELECT TABLE_NAME AS t, ENGINE AS e FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (' . implode( ',', array_fill( 0, count( $tabelle ), '%s' ) ) . ')',
+			$tabelle
+		)
+	);
+	$errore   = (string) $wpdb->last_error;
+	$wpdb->suppress_errors( $suppress );
+	if ( ! is_array( $rows ) || '' !== $errore ) {
+		$cache = null;
+		return $cache;
+	}
+	$motori = array();
+	foreach ( $rows as $r ) {
+		$motori[ (string) $r->t ] = (string) $r->e;
+	}
+	$cache = array();
+	foreach ( $tabelle as $t ) {
+		$e = isset( $motori[ $t ] ) ? $motori[ $t ] : '';
+		if ( 'innodb' !== strtolower( $e ) ) {
+			$cache[ $t ] = $e;
+		}
+	}
+	return $cache;
 }
 
 /**
@@ -424,22 +486,11 @@ function apac_ensure_innodb() {
  * 'si' = tutte InnoDB; 'no' = almeno una tabella senza transazioni; '' = non determinabile.
  */
 function apac_tx_support() {
-	global $wpdb;
-	$suppress = $wpdb->suppress_errors( true );
-	$esito    = 'si';
-	foreach ( apac_all_tables() as $t ) {
-		$row = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $t ) );
-		if ( ! $row || ! isset( $row->Engine ) ) {
-			$esito = '';
-			break;
-		}
-		if ( 'innodb' !== strtolower( (string) $row->Engine ) ) {
-			$esito = 'no';
-			break;
-		}
+	$p = apac_tx_tabelle_problema();
+	if ( null === $p ) {
+		return '';
 	}
-	$wpdb->suppress_errors( $suppress );
-	return $esito;
+	return $p ? 'no' : 'si';
 }
 
 /** Ricostruisce le radici dalle origini, senza fidarsi di serie_id parziali di vecchie migrazioni. */

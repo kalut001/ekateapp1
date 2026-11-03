@@ -25,6 +25,7 @@ require_once APAC_DIR . 'includes/forms.php';
 require_once APAC_DIR . 'includes/mail.php';
 require_once APAC_DIR . 'includes/files.php';
 require_once APAC_DIR . 'includes/criticita.php';
+require_once APAC_DIR . 'includes/operazioni.php';
 require_once APAC_DIR . 'includes/actions.php';
 require_once APAC_DIR . 'includes/notifiche.php';
 require_once APAC_DIR . 'includes/portal.php';
@@ -155,4 +156,13 @@ function apac_migration_notice() {
 		return;
 	}
 	echo '<div class="notice notice-error"><p><strong>AP Area Clienti:</strong> l’aggiornamento del database non è riuscito (' . esc_html( $err['missing'] ) . '). Il plugin riprova automaticamente; se il problema persiste contatta l’assistenza dell’hosting. Dettaglio: ' . esc_html( $err['db'] ) . '</p></div>';
+}
+
+/* 1.9.15: avviso in bacheca se una tabella del plugin non supporta le transazioni (salvataggi bloccati). */
+add_action( 'admin_notices', 'apac_tx_notice' );
+function apac_tx_notice() {
+	if ( ! current_user_can( 'manage_options' ) || 'no' !== apac_tx_support() ) {
+		return;
+	}
+	echo '<div class="notice notice-error"><p><strong>AP Area Clienti:</strong> alcune tabelle del database non supportano le transazioni: l’area riservata non salva modifiche finché non vengono convertite in InnoDB. <a href="' . esc_url( admin_url( 'options-general.php?page=apac-settings' ) ) . '">Dettagli</a></p></div>';
 }

@@ -6,7 +6,8 @@ add_action( 'admin_post_nopriv_apac_action', 'apac_serve_file_denied' );
 
 /**
  * Smistatore unico dei moduli dell'area clienti.
- * Ogni operazione: nonce + verifica dell'accesso all'azienda.
+ * 1.9.15: tutte le regole di accesso vengono dal registro (includes/operazioni.php); un'operazione non
+ * registrata viene rifiutata prima di qualsiasi altro passaggio.
  */
 function apac_handle_action() {
 	$op = sanitize_key( apac_post( 'op' ) );
@@ -16,27 +17,33 @@ function apac_handle_action() {
 	if ( ! apac_user_can_use_portal() ) {
 		wp_die( 'Accesso non consentito.', 'Errore', array( 'response' => 403 ) );
 	}
-
-	$admin_ops = array( 'azienda_create', 'azienda_delete', 'azienda_permessi', 'utente_create', 'utente_revoca', 'utente_riattiva', 'utente_elimina', 'utente_update', 'utente_reset', 'segnalazione_update', 'segnalazione_delete', 'mansione_corso_add', 'mansione_corso_delete', 'log_svuota', 'primi_passi', 'richiesta_approva', 'richiesta_rifiuta', 'richiesta_elimina' );
-	if ( in_array( $op, $admin_ops, true ) && ! apac_is_admin() ) {
+	$o = apac_operazione( $op );
+	if ( ! $o || ! function_exists( $o['fn'] ) ) {
+		apac_redirect( 'dashboard', 'invalid' );
+	}
+	$admin = apac_is_admin();
+	if ( 'cliente' !== $o['ruolo'] && ! $admin ) {
 		apac_redirect( 'dashboard', 'denied' );
 	}
 
 	// Azienda di lavoro: per i clienti è sempre la propria (il valore inviato viene ignorato).
-	$azienda_id = apac_is_admin() ? absint( apac_post( 'azienda_id' ) ) : apac_user_azienda_id();
-	if ( ! in_array( $op, array( 'azienda_create', 'utente_revoca', 'utente_riattiva', 'utente_elimina', 'utente_update', 'utente_reset', 'log_svuota', 'richiesta_approva', 'richiesta_rifiuta', 'richiesta_elimina' ), true ) && ! apac_can_access_azienda( $azienda_id ) ) {
+	$azienda_id = $admin ? absint( apac_post( 'azienda_id' ) ) : apac_user_azienda_id();
+	if ( 'nessuno' !== $o['ambito'] && ! apac_can_access_azienda( $azienda_id ) ) {
 		apac_redirect( 'dashboard', 'no_azienda' );
 	}
 	$_REQUEST['azienda'] = $azienda_id; // Mantiene l'azienda selezionata nei redirect dell'amministratore.
 
 	// Permessi del cliente su questa azienda (l'amministratore può sempre tutto).
-	$perm = apac_op_permission( $op );
-	if ( $perm && ! apac_client_can( $azienda_id, $perm ) ) {
-		apac_redirect( apac_op_section( $op ), 'denied' );
+	if ( '' !== $o['permesso'] && ! apac_client_can( $azienda_id, $o['permesso'] ) ) {
+		apac_redirect( $o['sezione'], 'denied' );
+	}
+	// Accesso in sola consultazione: solo le operazioni indicate nel registro.
+	if ( ! $admin && ! $o['sola_lettura'] && apac_user_readonly() ) {
+		apac_redirect( $o['sezione'], 'denied' );
 	}
 
 	// 1.7.2: finché mancano le firme richieste al primo accesso, nessun'altra operazione.
-	if ( 'consenso_firma' !== $op && ! apac_is_admin() && function_exists( 'apac_consensi_pending' ) && apac_consensi_pending() ) {
+	if ( ! $o['prima_delle_firme'] && ! $admin && function_exists( 'apac_consensi_pending' ) && apac_consensi_pending() ) {
 		apac_redirect( 'dashboard', 'consent_needed' );
 	}
 
@@ -44,15 +51,15 @@ function apac_handle_action() {
 	// (pagina vecchia, richiesta costruita a mano, database non disponibile) l'invio è bloccato.
 	$once = apac_once_check();
 	if ( 'dup' === $once ) {
-		apac_redirect( apac_op_section( $op ), 'already_done' );
+		apac_redirect( $o['sezione'], 'already_done' );
 	}
 	if ( 'busy' === $once || 'unknown' === $once ) {
 		$GLOBALS['apac_form_op'] = $op; // I dati inseriti restano disponibili.
-		apac_redirect( apac_op_section( $op ), 'busy' === $once ? 'in_progress' : 'esito_ignoto' );
+		apac_redirect( $o['sezione'], 'busy' === $once ? 'in_progress' : 'esito_ignoto' );
 	}
 	if ( 'ok' !== $once ) {
 		$GLOBALS['apac_form_op'] = $op; // I dati inseriti restano nel modulo.
-		apac_redirect( apac_op_section( $op ), 'reload_needed' );
+		apac_redirect( $o['sezione'], 'reload_needed' );
 	}
 
 	// Modulo in elaborazione: se fallisce, i valori inviati vengono riproposti.
@@ -65,15 +72,12 @@ function apac_handle_action() {
 		'detail'     => '',
 	);
 
-	$fn = 'apac_op_' . $op;
-	if ( function_exists( $fn ) ) {
-		// Ogni operazione è "tutto o niente" (tranne l'invio della password, che non scrive dati del plugin).
-		if ( 'utente_reset' !== $op && ! apac_tx_begin() ) {
-			apac_redirect( 'dashboard', 'db_error' );
-		}
-		call_user_func( $fn, $azienda_id );
+	// Ogni operazione è "tutto o niente" (tranne quelle che non scrivono dati del plugin).
+	if ( $o['transazione'] && ! apac_tx_begin() ) {
+		apac_redirect( 'dashboard', apac_tx_errore() );
 	}
-	apac_redirect( 'dashboard', 'invalid' );
+	call_user_func( $o['fn'], $azienda_id );
+	apac_redirect( 'dashboard', 'invalid' ); // Ogni operazione termina con un proprio reindirizzamento.
 }
 
 /* ----------------------------- Aziende -------------------------------- */
