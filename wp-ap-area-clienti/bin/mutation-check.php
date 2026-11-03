@@ -10,7 +10,11 @@
  *   APAC_TEST_DB_HOST=... php bin/mutation-check.php            tutte le mutazioni
  *   APAC_TEST_DB_HOST=... php bin/mutation-check.php revoca     solo quelle con "revoca" nel nome
  *
- * Esito: 0 se tutte le mutazioni sono rilevate, 1 altrimenti.
+ * Una mutazione può avere più sostituzioni (anche in file diversi) e può essere dichiarata "equivalente":
+ * togliere quel solo controllo non cambia il comportamento perché un altro livello lo ripete. In quel caso
+ * la motivazione è scritta nel rapporto e deve esistere una mutazione che toglie TUTTI i livelli insieme.
+ *
+ * Esito: 0 se tutte le mutazioni non equivalenti sono rilevate, 1 altrimenti.
  */
 $root   = dirname( __DIR__ );
 $filter = isset( $argv[1] ) ? $argv[1] : '';
@@ -23,8 +27,16 @@ $mutazioni = array(
 	array( 'revoca: utente revocato con accesso alla propria azienda', 'includes/helpers.php', "return ! apac_user_revoked() && apac_user_azienda_id() === \$azienda_id;", 'return apac_user_azienda_id() === $azienda_id;' ),
 	array( 'ruolo: operazioni dello studio aperte ai clienti', 'includes/actions.php', "if ( 'cliente' !== \$o['ruolo'] && ! \$admin ) {", 'if ( false ) {' ),
 	array( 'permessi: permesso per azienda non controllato', 'includes/actions.php', "if ( '' !== \$o['permesso'] && ! apac_client_can( \$azienda_id, \$o['permesso'] ) ) {", 'if ( false ) {' ),
-	array( 'sola consultazione: controllo centrale tolto', 'includes/actions.php', "if ( ! \$admin && ! \$o['sola_lettura'] && apac_user_readonly() ) {", 'if ( false ) {' ),
-	array( 'sola consultazione: controllo nei permessi tolto', 'includes/admin-tools.php', "\tif ( apac_user_readonly() ) {\n\t\treturn false; // Accesso in sola consultazione.\n\t}", '' ),
+	array( 'sola consultazione: controllo centrale tolto', 'includes/actions.php', "if ( ! \$admin && ! \$o['sola_lettura'] && apac_user_readonly() ) {", 'if ( false ) {', 'equivalente' => 'le operazioni con un permesso sono bloccate anche da apac_client_can(); richiesta_collega (unica senza permesso) controlla la sola consultazione anche al suo interno' ),
+	array( 'sola consultazione: controllo nei permessi tolto', 'includes/admin-tools.php', "\tif ( apac_user_readonly() ) {\n\t\treturn false; // Accesso in sola consultazione.\n\t}", '', 'equivalente' => 'il controllo centrale del dispatcher blocca comunque le operazioni non consentite in sola consultazione' ),
+	array(
+		'sola consultazione: tutti i livelli tolti insieme',
+		array(
+			array( 'includes/actions.php', "if ( ! \$admin && ! \$o['sola_lettura'] && apac_user_readonly() ) {", 'if ( false ) {' ),
+			array( 'includes/admin-tools.php', "\tif ( apac_user_readonly() ) {\n\t\treturn false; // Accesso in sola consultazione.\n\t}", '' ),
+			array( 'includes/richieste.php', "\tif ( apac_is_admin() || apac_user_readonly() ) {\n\t\tapac_redirect( 'azienda', 'readonly' );", "\tif ( apac_is_admin() ) {\n\t\tapac_redirect( 'azienda', 'readonly' );" ),
+		),
+	),
 	array( 'firme: operazioni consentite senza firme del primo accesso', 'includes/actions.php', "if ( ! \$o['prima_delle_firme'] && ! \$admin && function_exists( 'apac_consensi_pending' ) && apac_consensi_pending() ) {", 'if ( false ) {' ),
 	array( 'firme: download consentiti senza firme', 'includes/files.php', "if ( is_user_logged_in() && ! apac_is_admin() && function_exists( 'apac_consensi_pending' ) && apac_consensi_pending() ) {", 'if ( false ) {' ),
 	array( 'download: nonce del documento non verificato', 'includes/files.php', "! wp_verify_nonce( sanitize_text_field( wp_unslash( \$_GET['_wpnonce'] ) ), 'apac_file_' . \$id )", 'false' ),
@@ -48,25 +60,35 @@ $env     = 'APAC_TEST_DB_HOST=' . escapeshellarg( (string) getenv( 'APAC_TEST_DB
 $esiti   = array();
 $rilev   = 0;
 $errori  = 0;
+$equivalenti = 0;
 foreach ( $mutazioni as $m ) {
-	list( $nome, $file, $da, $a ) = $m;
+	$nome   = $m[0];
+	$sost   = is_array( $m[1] ) ? $m[1] : array( array( $m[1], $m[2], $m[3] ) );
+	$equiv  = isset( $m['equivalente'] ) ? $m['equivalente'] : '';
 	if ( '' !== $filter && false === stripos( $nome, $filter ) ) {
 		continue;
 	}
 	shell_exec( 'rm -rf ' . escapeshellarg( $tmp ) );
 	mkdir( $tmp, 0755, true );
 	shell_exec( 'cp -r ' . escapeshellarg( $root . '/ap-area-clienti' ) . ' ' . escapeshellarg( $tmp . '/' ) );
-	$path = $tmp . '/ap-area-clienti/' . $file;
-	$src  = (string) file_get_contents( $path );
-	if ( 1 !== substr_count( $src, $da ) ) {
-		$esiti[] = array( $nome, 'ERRORE: testo da mutare trovato ' . substr_count( $src, $da ) . ' volte in ' . $file );
-		$errori++;
-		continue;
+	$problema = '';
+	foreach ( $sost as $x ) {
+		list( $file, $da, $a ) = $x;
+		$path = $tmp . '/ap-area-clienti/' . $file;
+		$src  = (string) file_get_contents( $path );
+		if ( 1 !== substr_count( $src, $da ) ) {
+			$problema = 'ERRORE: testo da mutare trovato ' . substr_count( $src, $da ) . ' volte in ' . $file;
+			break;
+		}
+		file_put_contents( $path, str_replace( $da, $a, $src ) );
+		exec( 'php -l ' . escapeshellarg( $path ) . ' 2>&1', $o, $rc );
+		if ( 0 !== $rc ) {
+			$problema = 'ERRORE: la mutazione rompe la sintassi di ' . $file;
+			break;
+		}
 	}
-	file_put_contents( $path, str_replace( $da, $a, $src ) );
-	exec( 'php -l ' . escapeshellarg( $path ) . ' 2>&1', $o, $rc );
-	if ( 0 !== $rc ) {
-		$esiti[] = array( $nome, 'ERRORE: la mutazione rompe la sintassi' );
+	if ( '' !== $problema ) {
+		$esiti[] = array( $nome, $problema );
 		$errori++;
 		continue;
 	}
@@ -84,6 +106,9 @@ foreach ( $mutazioni as $m ) {
 	if ( $falliti ) {
 		$rilev++;
 		$esiti[] = array( $nome, 'RILEVATA da ' . count( $falliti ) . ' test (es. ' . substr( $falliti[0], 6, 90 ) . ')' );
+	} elseif ( '' !== $equiv ) {
+		$equivalenti++;
+		$esiti[] = array( $nome, 'EQUIVALENTE (non rilevabile, motivo: ' . $equiv . ')' );
 	} else {
 		$esiti[] = array( $nome, 'NON RILEVATA: nessun test fallisce senza questo controllo' );
 	}
@@ -93,5 +118,5 @@ shell_exec( 'rm -rf ' . escapeshellarg( $tmp ) );
 exec( $env . ' ' . escapeshellarg( $root . '/bin/test-env.sh' ) . ' > /dev/null 2>&1' ); // Ambiente di nuovo sul plugin del repository.
 
 $tot = count( $esiti );
-echo "\nRiepilogo: {$rilev} mutazioni rilevate su {$tot}" . ( $errori ? ", {$errori} non applicabili" : '' ) . "\n";
-exit( $rilev === $tot ? 0 : 1 );
+echo "\nRiepilogo: {$rilev} mutazioni rilevate su " . ( $tot - $equivalenti ) . ' da rilevare' . ( $equivalenti ? " ({$equivalenti} equivalenti per controlli ridondanti, motivate sopra)" : '' ) . ( $errori ? ", {$errori} non applicabili" : '' ) . "\n";
+exit( $rilev === $tot - $equivalenti ? 0 : 1 );
