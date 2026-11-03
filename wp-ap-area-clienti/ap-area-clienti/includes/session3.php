@@ -948,6 +948,7 @@ function apac_serve_report() {
 	if ( ! apac_can_access_azienda( $az_id ) ) {
 		wp_die( 'Azienda non disponibile.', 'Accesso negato', array( 'response' => 403 ) );
 	}
+	apac_require_consents_for_download();
 	nocache_headers();
 	header( 'Content-Type: text/html; charset=utf-8' );
 	header( 'X-Robots-Tag: noindex, nofollow' );

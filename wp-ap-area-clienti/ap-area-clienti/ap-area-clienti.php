@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AP Area Clienti
  * Description:       Area riservata per le aziende clienti: dashboard, anagrafica aziendale, lavoratori e attestati, archivio documenti protetto, scadenzario con avvisi email, segnalazioni e analisi delle criticità. Inserire lo shortcode [ap_area_clienti] in una pagina.
- * Version:           1.9.13
+ * Version:           1.9.14
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            AP Sicurezza Lavoro
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'APAC_VERSION', '1.9.13' );
+define( 'APAC_VERSION', '1.9.14' );
 define( 'APAC_DB_VERSION', '14' );
 define( 'APAC_FILE', __FILE__ );
 define( 'APAC_DIR', plugin_dir_path( __FILE__ ) );

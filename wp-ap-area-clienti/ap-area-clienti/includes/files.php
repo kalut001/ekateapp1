@@ -336,6 +336,17 @@ function apac_file_url( $doc_id, $mode = 'download' ) {
 add_action( 'admin_post_apac_file', 'apac_serve_file' );
 add_action( 'admin_post_nopriv_apac_file', 'apac_serve_file_denied' );
 
+/**
+ * 1.9.14 – Finché il cliente non ha firmato i documenti richiesti al primo accesso (informativa,
+ * accordo art. 28) non scarica nulla, come già avveniva per le altre operazioni.
+ * Termina la richiesta con un errore 403 se le firme mancano.
+ */
+function apac_require_consents_for_download() {
+	if ( is_user_logged_in() && ! apac_is_admin() && function_exists( 'apac_consensi_pending' ) && apac_consensi_pending() ) {
+		wp_die( 'Prima di consultare i documenti firma quanto richiesto al primo accesso: apri l’area riservata e completa le firme.', 'Firme richieste', array( 'response' => 403 ) );
+	}
+}
+
 function apac_serve_file_denied() {
 	wp_die( 'Accesso riservato. Effettua il login.', 'Accesso negato', array( 'response' => 403 ) );
 }
@@ -353,6 +364,7 @@ function apac_serve_file() {
 	if ( ! $doc || ! apac_can_access_azienda( (int) $doc->azienda_id ) ) {
 		wp_die( 'Documento non disponibile.', 'Accesso negato', array( 'response' => 403 ) );
 	}
+	apac_require_consents_for_download();
 
 	if ( 'mancante' === apac_storage_state() ) {
 		wp_die( 'L’archivio dei documenti non è al momento disponibile sul server. Contatta lo studio.', 'Errore', array( 'response' => 503 ) );

@@ -184,6 +184,7 @@ function apac_serve_extra_files() {
 		if ( ! $row || ! apac_can_access_azienda( (int) $row->azienda_id ) ) {
 			wp_die( 'File non disponibile.', 'Accesso negato', array( 'response' => 403 ) );
 		}
+		apac_require_consents_for_download();
 		$path = apac_document_abs_path( $row );
 		if ( ! $path || ! is_readable( $path ) ) {
 			wp_die( 'File non trovato sul server.', 'Errore', array( 'response' => 404 ) );
@@ -1140,6 +1141,7 @@ function apac_serve_downloads() {
 		if ( ! is_user_logged_in() || ! apac_user_can_use_portal() || ! wp_verify_nonce( $nonce, 'apac_export_' . $az_id ) || ! apac_can_access_azienda( $az_id ) ) {
 			wp_die( 'Link non valido o scaduto.', 'Accesso negato', array( 'response' => 403 ) );
 		}
+		apac_require_consents_for_download();
 		apac_export_azienda( $az_id, 'csv' === $_GET['apac_export'] ? 'csv' : 'xlsx' );
 	}
 	// phpcs:enable

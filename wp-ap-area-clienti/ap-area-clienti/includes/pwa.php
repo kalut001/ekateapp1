@@ -116,7 +116,7 @@ function apac_render_login_form() {
 	echo '<input type="hidden" name="_apac_login_nonce" value="' . esc_attr( wp_create_nonce( 'apac_login' ) ) . '">';
 	echo '<p class="login-username"><label for="apac-user">Email</label><input type="text" name="log" id="apac-user" autocomplete="username" inputmode="email" required></p>';
 	echo '<p class="login-password"><label for="apac-pass">Password</label><input type="password" name="pwd" id="apac-pass" autocomplete="current-password" required></p>';
-	echo '<p class="login-remember"><label><input name="rememberme" type="checkbox" value="forever" checked> Ricordami</label></p>';
+	echo '<p class="login-remember"><label><input name="rememberme" type="checkbox" value="forever"> Ricordami</label></p>';
 	echo '<p class="login-submit"><button type="submit" class="apac-btn">Accedi</button></p>';
 	echo '</form>';
 }

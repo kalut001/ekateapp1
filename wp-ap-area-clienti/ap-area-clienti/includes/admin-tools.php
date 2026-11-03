@@ -249,8 +249,9 @@ function apac_author_label( $user_id ) {
 
 function apac_op_utente_update( $unused ) {
 	$user_id = absint( apac_post( 'user_id' ) );
-	$user    = get_userdata( $user_id );
-	if ( ! $user || ! in_array( APAC_ROLE, (array) $user->roles, true ) || user_can( $user, 'manage_options' ) ) {
+	// 1.9.14: stesso controllo di revoca/eliminazione (mai un amministratore o un utente che scrive sul sito).
+	$user    = apac_get_client_user( $user_id );
+	if ( ! $user ) {
 		apac_redirect( 'utenti', 'denied' );
 	}
 	$email   = apac_normalize_email( apac_post( 'email' ) );
@@ -305,8 +306,8 @@ function apac_op_utente_update( $unused ) {
 
 function apac_op_utente_reset( $unused ) {
 	$user_id = absint( apac_post( 'user_id' ) );
-	$user    = get_userdata( $user_id );
-	if ( ! $user || ! in_array( APAC_ROLE, (array) $user->roles, true ) ) {
+	$user    = apac_get_client_user( $user_id ); // 1.9.14: solo utenti clienti.
+	if ( ! $user ) {
 		apac_redirect( 'utenti', 'denied' );
 	}
 	$az = apac_user_azienda_id( $user_id );

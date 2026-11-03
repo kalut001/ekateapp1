@@ -22,6 +22,7 @@ const APAC_RICH_MAX_IP_ORA   = 10;  // Invii per indirizzo in un'ora.
 const APAC_RICH_MIN_SECONDI  = 3;   // Tempo minimo di compilazione (sotto: invio automatico).
 const APAC_RICH_MAX_ORE_FORM = 6;   // Modulo aperto da troppo tempo: si chiede di inviarlo di nuovo.
 const APAC_RICH_MAX_COLLEGHI = 10;  // Richieste per colleghi in attesa, per azienda.
+const APAC_RICH_MAX_PER_EMAIL = 3;  // 1.9.14: richieste da confermare per lo stesso indirizzo nelle ultime 48 ore.
 
 /** Ruoli proposti nel modulo. */
 function apac_rich_ruoli() {
@@ -81,10 +82,68 @@ function apac_rich_count_attesa() {
 	return $n;
 }
 
-/** Impronta dell'indirizzo IP (non si conserva l'indirizzo in chiaro). */
+/**
+ * 1.9.14 – Indirizzo IP del visitatore.
+ *
+ * Di norma REMOTE_ADDR. Se il sito è dietro un proxy o una CDN (es. Cloudflare), REMOTE_ADDR è l'indirizzo
+ * del proxy, uguale per tutti: il limite di invii diventerebbe unico per tutto il sito. In quel caso in
+ * wp-config.php si indica l'intestazione con l'IP reale, per esempio:
+ *   define( 'APAC_IP_HEADER', 'HTTP_CF_CONNECTING_IP' );   // Cloudflare
+ *   define( 'APAC_IP_HEADER', 'HTTP_X_REAL_IP' );          // proxy che imposta X-Real-IP
+ * L'intestazione NON viene letta se la costante non è definita: un visitatore potrebbe falsificarla.
+ * Con X-Forwarded-For si usa l'ultimo indirizzo (quello aggiunto dal proxy, non dal visitatore).
+ */
+function apac_rich_client_ip() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? trim( (string) wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	if ( defined( 'APAC_IP_HEADER' ) && is_string( APAC_IP_HEADER ) && '' !== APAC_IP_HEADER && ! empty( $_SERVER[ APAC_IP_HEADER ] ) ) {
+		$parts = array_map( 'trim', explode( ',', (string) wp_unslash( $_SERVER[ APAC_IP_HEADER ] ) ) );
+		$cand  = (string) end( $parts );
+		if ( false !== filter_var( $cand, FILTER_VALIDATE_IP ) ) {
+			$ip = $cand;
+		}
+	}
+	$ip = (string) apply_filters( 'apac_rich_client_ip', $ip );
+	return false !== filter_var( $ip, FILTER_VALIDATE_IP ) ? $ip : '';
+}
+
+/**
+ * Impronta dell'indirizzo IP (non si conserva l'indirizzo in chiaro).
+ * 1.9.14: per IPv6 si usa la rete /64 (un singolo utente ne ha di solito una intera e può cambiare
+ * indirizzo a piacere: contare il singolo indirizzo renderebbe inutile il limite).
+ */
 function apac_rich_ip_hash() {
-	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	$ip = apac_rich_client_ip();
+	if ( false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+		$bin = inet_pton( $ip );
+		if ( false !== $bin && 16 === strlen( $bin ) ) {
+			$ip = bin2hex( substr( $bin, 0, 8 ) ) . '::/64';
+		}
+	}
 	return hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) );
+}
+
+/**
+ * 1.9.14 – Conta un invio per questo indirizzo nell'ora corrente. Lettura e scrittura del contatore
+ * avvengono sotto un lock del database: invii contemporanei non possono superare il limite.
+ *
+ * @return string 'ok', 'troppe' oppure 'errore' (lock non ottenuto).
+ */
+function apac_rich_ip_hit( $ip_hash ) {
+	global $wpdb;
+	$tkey = 'apac_rich_ip_' . substr( $ip_hash, 0, 32 );
+	$lock = 'apac_rip_' . substr( $ip_hash, 0, 40 );
+	if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock ) ) ) {
+		return 'errore';
+	}
+	$hits = (int) get_transient( $tkey );
+	if ( $hits >= APAC_RICH_MAX_IP_ORA ) {
+		$esito = 'troppe';
+	} else {
+		set_transient( $tkey, $hits + 1, HOUR_IN_SECONDS );
+		$esito = 'ok';
+	}
+	$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
+	return $esito;
 }
 
 /** Codice del modulo: ora di apertura firmata (non dipende da sessioni o cache della pagina). */
@@ -245,15 +304,16 @@ function apac_rich_submit() {
 		return $err;
 	}
 
-	// Limiti: invii dallo stesso indirizzo e richieste aperte in totale.
-	$ip   = apac_rich_ip_hash();
-	$tkey = 'apac_rich_ip_' . substr( $ip, 0, 32 );
-	$hits = (int) get_transient( $tkey );
-	if ( $hits >= APAC_RICH_MAX_IP_ORA ) {
-		return 'troppe';
+	// Limiti: invii dallo stesso indirizzo (contatore protetto da lock) e richieste aperte in totale.
+	$ip  = apac_rich_ip_hash();
+	$hit = apac_rich_ip_hit( $ip );
+	if ( 'ok' !== $hit ) {
+		return $hit;
 	}
-	set_transient( $tkey, $hits + 1, HOUR_IN_SECONDS );
-	$aperte = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . apac_table( 'richieste' ) . " WHERE stato IN ('da_confermare','in_attesa')" );
+	// 1.9.14: contano solo le richieste CONFERMATE in attesa dello studio. Quelle da confermare non
+	// sospendono più il modulo: bastavano 50 email inventate per bloccarlo a tutti fino a 7 giorni.
+	// Le richieste non confermate restano limitate per indirizzo IP e per email e si cancellano da sole.
+	$aperte = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . apac_table( 'richieste' ) . " WHERE stato = 'in_attesa'" );
 	if ( $aperte >= APAC_RICH_MAX_APERTE ) {
 		return 'sospeso';
 	}
@@ -269,6 +329,23 @@ function apac_rich_submit() {
 }
 
 /**
+ * 1.9.14 – Quota di email automatiche verso lo stesso indirizzo (APAC_RICH_MAX_PER_EMAIL ogni 48 ore),
+ * per tutti i tipi di risposta (account esistente, rifiuto recente, richiesta già in esame, conferma).
+ * Chiamata con il lock dell'indirizzo già preso (apac_rich_submit): lettura e scrittura non si sovrappongono.
+ *
+ * @return bool true se si può inviare (e l'invio viene contato).
+ */
+function apac_rich_mail_quota( $email ) {
+	$key = 'apac_rich_em_' . md5( strtolower( (string) $email ) );
+	$n   = (int) get_transient( $key );
+	if ( $n >= APAC_RICH_MAX_PER_EMAIL ) {
+		return false;
+	}
+	set_transient( $key, $n + 1, APAC_RICH_LINK_ORE * HOUR_IN_SECONDS );
+	return true;
+}
+
+/**
  * Salva la richiesta (o gestisce i casi particolari) e invia l'email. A video l'esito è
  * sempre lo stesso («controlla la tua email»): il sito non rivela se un indirizzo ha già un account.
  */
@@ -280,6 +357,9 @@ function apac_rich_store( $tipo, $az, $ref, $tel, $messaggio, $ip ) {
 
 	// 1. Email di un account esistente: si avvisa solo il proprietario dell'indirizzo.
 	if ( email_exists( $email ) || username_exists( $email ) ) {
+		if ( ! apac_rich_mail_quota( $email ) ) {
+			return 'inviata'; // Quota superata: stessa risposta a video, nessuna email.
+		}
 		$ok = apac_send_mail(
 			$email,
 			'Area riservata AP Sicurezza Lavoro – hai già un account',
@@ -292,6 +372,9 @@ function apac_rich_store( $tipo, $az, $ref, $tel, $messaggio, $ip ) {
 	// 2. Rifiuto recente con la stessa email o la stessa partita IVA.
 	$rif = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$t} WHERE stato = 'rifiutata' AND gestita_at >= %s AND ( email = %s OR ( partita_iva <> '' AND partita_iva = %s ) ) LIMIT 1", apac_rich_ago( APAC_RICH_BLOCCO_GG * DAY_IN_SECONDS ), $email, $az['partita_iva'] ) );
 	if ( $rif ) {
+		if ( ! apac_rich_mail_quota( $email ) ) {
+			return 'inviata'; // Quota superata: stessa risposta a video, nessuna email.
+		}
 		$ok = apac_send_mail(
 			$email,
 			'Area riservata AP Sicurezza Lavoro – richiesta di accesso',
@@ -304,6 +387,9 @@ function apac_rich_store( $tipo, $az, $ref, $tel, $messaggio, $ip ) {
 	// 3. Richiesta già all'esame dello studio.
 	$attesa = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$t} WHERE stato = 'in_attesa' AND email = %s LIMIT 1", $email ) );
 	if ( $attesa ) {
+		if ( ! apac_rich_mail_quota( $email ) ) {
+			return 'inviata'; // Quota superata: stessa risposta a video, nessuna email.
+		}
 		$ok = apac_send_mail(
 			$email,
 			'Area riservata AP Sicurezza Lavoro – richiesta già ricevuta',
@@ -331,15 +417,18 @@ function apac_rich_store( $tipo, $az, $ref, $tel, $messaggio, $ip ) {
 		'ip_hash'         => $ip,
 		'inviata_at'      => apac_now(),
 	);
-	$old = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$t} WHERE stato = 'da_confermare' AND email = %s ORDER BY id DESC LIMIT 1", $email ) );
-	if ( $old ) {
-		$ok = false !== $wpdb->update( $t, $data, array( 'id' => $old, 'stato' => 'da_confermare' ) );
-		$id = $old;
-	} else {
-		$data['created_at'] = apac_now();
-		$ok                 = false !== $wpdb->insert( $t, $data );
-		$id                 = (int) $wpdb->insert_id;
+	// 1.9.14: una richiesta da confermare non viene più sovrascritta da un nuovo invio con la stessa email
+	// (chiunque poteva sostituirne i dati e invalidare il link già ricevuto): ogni invio è una richiesta a sé,
+	// con il proprio link. Al massimo APAC_RICH_MAX_PER_EMAIL email di conferma in 48 ore per indirizzo:
+	// oltre, si risponde come sempre ma non si invia nulla (il sito non può essere usato per tempestare
+	// di email una casella).
+	$recenti = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$t} WHERE stato = 'da_confermare' AND email = %s AND inviata_at >= %s", $email, apac_rich_ago( APAC_RICH_LINK_ORE * HOUR_IN_SECONDS ) ) );
+	if ( $recenti >= APAC_RICH_MAX_PER_EMAIL || ! apac_rich_mail_quota( $email ) ) {
+		return 'inviata';
 	}
+	$data['created_at'] = apac_now();
+	$ok                 = false !== $wpdb->insert( $t, $data );
+	$id                 = (int) $wpdb->insert_id;
 	if ( ! $ok || ! $id ) {
 		return 'errore';
 	}
@@ -354,7 +443,9 @@ function apac_rich_store( $tipo, $az, $ref, $tel, $messaggio, $ip ) {
 	$sent = apac_send_mail(
 		$email,
 		'Conferma la richiesta di accesso – AP Sicurezza Lavoro',
-		"Buongiorno " . $ref['nome'] . ",\n\nper completare la richiesta di accesso all'area riservata per «" . $az['ragione_sociale'] . "» apri questo link e premi «Conferma la richiesta»:\n\n" . $link . "\n\nIl link vale " . APAC_RICH_LINK_ORE . " ore. Dopo la conferma la richiesta passa allo studio, che la verifica: riceverai un'email con l'esito e, se approvata, il link per scegliere la password.\n\nSe non hai fatto tu la richiesta ignora questo messaggio: senza conferma non viene registrato nulla e i dati si cancellano da soli.\n\nAP Sicurezza Lavoro",
+		// 1.9.14: nessun testo scritto dal richiedente (nome, ragione sociale) in questa email: l'indirizzo
+		// non è ancora verificato e il testo libero potrebbe essere usato per spam o phishing a nome dello studio.
+		"Buongiorno,\n\nabbiamo ricevuto una richiesta di accesso all'area riservata di AP Sicurezza Lavoro con questo indirizzo email.\n\nPer completarla apri questo link e premi «Conferma la richiesta»:\n\n" . $link . "\n\nIl link vale " . APAC_RICH_LINK_ORE . " ore. Dopo la conferma la richiesta passa allo studio, che la verifica: riceverai un'email con l'esito e, se approvata, il link per scegliere la password.\n\nSe non hai fatto tu la richiesta ignora questo messaggio: senza conferma non viene registrato nulla e i dati si cancellano da soli.\n\nAP Sicurezza Lavoro",
 		apac_auto_headers()
 	);
 	if ( ! $sent ) {
@@ -377,7 +468,25 @@ function apac_rich_confirm( $id, $token ) {
 	if ( 'da_confermare' !== $r->stato || strtotime( (string) $r->inviata_at ) < strtotime( apac_rich_ago( APAC_RICH_LINK_ORE * HOUR_IN_SECONDS ) ) ) {
 		return 'link_scaduto';
 	}
-	$n = $wpdb->query( $wpdb->prepare( 'UPDATE ' . apac_table( 'richieste' ) . " SET stato = 'in_attesa', confermata_at = %s WHERE id = %d AND stato = 'da_confermare'", apac_now(), $id ) );
+	// 1.9.14: dalla 1.9.14 la stessa email può avere più richieste da confermare (ognuna con il proprio link).
+	// Vale la prima confermata; le altre vengono eliminate, così allo studio non arrivano doppioni.
+	// Il lock dell'indirizzo evita che due conferme contemporanee passino entrambe.
+	$t    = apac_table( 'richieste' );
+	$lock = 'apac_rich_' . md5( (string) $r->email );
+	if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock ) ) ) {
+		return 'errore';
+	}
+	$gia = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$t} WHERE stato = 'in_attesa' AND email = %s AND id <> %d LIMIT 1", $r->email, $id ) );
+	if ( $gia ) {
+		$wpdb->delete( $t, array( 'id' => $id, 'stato' => 'da_confermare' ) );
+		$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
+		return 'confermata'; // Un'altra richiesta con questa email è già all'esame dello studio.
+	}
+	$n = $wpdb->query( $wpdb->prepare( "UPDATE {$t} SET stato = 'in_attesa', confermata_at = %s WHERE id = %d AND stato = 'da_confermare'", apac_now(), $id ) );
+	if ( false !== $n && 1 === (int) $n ) {
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$t} WHERE stato = 'da_confermare' AND email = %s AND id <> %d", $r->email, $id ) );
+	}
+	$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
 	if ( false === $n ) {
 		return 'errore';
 	}
@@ -679,15 +788,20 @@ function apac_render_richieste() {
 		echo '<p class="apac-muted">Prima di approvare verifica che la persona sia autorizzata dall’azienda (per esempio con una telefonata al datore di lavoro o una visura).</p>';
 
 		// Approvazione.
-		echo '<details class="apac-edit"' . apac_details_open( 'richiesta_approva', 'id:' . (int) $r->id ) . ' open><summary class="apac-btn apac-btn--small">Approva…</summary>' . apac_form_open( 'richiesta_approva', 0 ) . apac_hidden( 'id', (int) $r->id );
+		echo '<details class="apac-edit" open><summary class="apac-btn apac-btn--small">Approva…</summary>' . apac_form_open( 'richiesta_approva', 0 ) . apac_hidden( 'id', (int) $r->id );
 		if ( 'collega' === $r->tipo ) {
 			$az = apac_get_azienda( (int) $r->azienda_id );
 			echo '<p>L’accesso sarà collegato a <strong>' . esc_html( $az ? $az->ragione_sociale : 'azienda non più presente' ) . '</strong>.</p>';
 		} else {
-			$dest = apac_form_value( 'destinazione', $match ? 'esistente' : 'nuova' );
-			echo '<div class="apac-rich__tipo" role="radiogroup"><label class="apac-check"><input type="radio" name="destinazione" value="nuova"' . checked( 'nuova', $dest, false ) . '><span>Crea una nuova azienda con questi dati</span></label>';
-			echo '<label class="apac-check"><input type="radio" name="destinazione" value="esistente"' . checked( 'esistente', $dest, false ) . '><span>Collega a un’azienda esistente</span></label></div>';
-			echo '<div data-dest="esistente">' . apac_azienda_picker( 'Azienda esistente', 'azienda_esistente', $match ? (int) $match[0]->id : 0 ) . '</div>';
+			// 1.9.14: nessuna scelta preimpostata. Prima, con la partita IVA già presente, era selezionato
+			// «Collega a un'azienda esistente»: un clic su «Approva» dava a chiunque conoscesse la partita IVA
+			// (dato pubblico) l'accesso ai dati dei lavoratori di un cliente. Ora la scelta è sempre esplicita.
+			$dest = (string) apac_form_value( 'destinazione', '' );
+			echo '<fieldset class="apac-rich__tipo"><legend>Cosa vuoi fare? *</legend><label class="apac-check"><input type="radio" name="destinazione" value="nuova" required' . checked( 'nuova', $dest, false ) . '><span>Crea una nuova azienda con questi dati</span></label>';
+			echo '<label class="apac-check"><input type="radio" name="destinazione" value="esistente" required' . checked( 'esistente', $dest, false ) . '><span>Collega a un’azienda esistente</span></label></fieldset>';
+			echo '<div data-dest="esistente">' . apac_azienda_picker( 'Azienda esistente', 'azienda_esistente', $match ? (int) $match[0]->id : 0 );
+			echo '<label class="apac-field apac-check"><input type="checkbox" name="verificato" value="1" required' . checked( apac_form_checked( 'verificato', false ), true, false ) . '><span><strong>Ho verificato direttamente con l’azienda</strong> (datore di lavoro o legale rappresentante, con un recapito che già conosco) che questa persona è autorizzata a vedere i dati dell’azienda e dei suoi lavoratori. *</span></label>';
+			echo '<p class="apac-muted">La conferma dell’email dimostra solo che il richiedente usa quella casella, non che lavora per l’azienda. La partita IVA è un dato pubblico. Se hai dubbi scegli «Solo consultazione» qui sotto oppure rifiuta.</p></div>';
 			echo '<div data-dest="nuova"><h3>Dati della nuova azienda (puoi correggerli)</h3>';
 			apac_render_azienda_fields( $dati ? $dati : null, true );
 			echo '<h3>Cosa potrà modificare il cliente</h3><div class="apac-perms">';
@@ -713,7 +827,7 @@ function apac_render_richieste() {
 		echo '</div></section>';
 	}
 	if ( $attesa ) {
-		echo '<script>(function(){document.querySelectorAll(".apac-rich-req form").forEach(function(f){var r=f.querySelectorAll("[name=destinazione]");if(!r.length)return;function u(){var v=(f.querySelector("[name=destinazione]:checked")||{}).value||"nuova";f.querySelectorAll("[data-dest]").forEach(function(d){var on=d.getAttribute("data-dest")===v;d.hidden=!on;d.querySelectorAll("input,select,textarea").forEach(function(i){i.disabled=!on;});});}f.addEventListener("change",function(e){if(e.target.name==="destinazione")u();});u();});})();</script>';
+		echo '<script>(function(){document.querySelectorAll(".apac-rich-req form").forEach(function(f){var r=f.querySelectorAll("[name=destinazione]");if(!r.length)return;function u(){var v=(f.querySelector("[name=destinazione]:checked")||{}).value||"";f.querySelectorAll("[data-dest]").forEach(function(d){var on=d.getAttribute("data-dest")===v;d.hidden=!on;d.querySelectorAll("input,select,textarea").forEach(function(i){i.disabled=!on;});});}f.addEventListener("change",function(e){if(e.target.name==="destinazione")u();});u();});})();</script>';
 	}
 
 	// Richieste non ancora confermate e storico.
@@ -778,11 +892,24 @@ function apac_op_richiesta_approva( $unused ) {
 		apac_error_field( 'ref_email' );
 		apac_redirect( 'richieste', 'user_exists' );
 	}
+	// 1.9.14: destinazione sempre scelta esplicitamente; per collegare a un'azienda esistente serve la
+	// conferma di aver verificato l'autorizzazione del richiedente (il server la ricontrolla).
+	$dest = (string) apac_post( 'destinazione' );
+	if ( 'collega' !== $r->tipo ) {
+		if ( ! in_array( $dest, array( 'nuova', 'esistente' ), true ) ) {
+			apac_error_field( 'destinazione' );
+			apac_redirect( 'richieste', 'need_dest' );
+		}
+		if ( 'esistente' === $dest && '1' !== (string) apac_post( 'verificato' ) ) {
+			apac_error_field( 'verificato' );
+			apac_redirect( 'richieste', 'need_verifica' );
+		}
+	}
 
 	apac_rich_claim( $id, 'approvata' ); // Prima di tutto: un secondo clic o un secondo amministratore si fermano qui.
 
 	// Azienda di destinazione.
-	if ( 'collega' === $r->tipo || 'esistente' === apac_post( 'destinazione' ) ) {
+	if ( 'collega' === $r->tipo || 'esistente' === $dest ) {
 		$az_id = 'collega' === $r->tipo ? (int) $r->azienda_id : absint( apac_post( 'azienda_esistente' ) );
 		if ( ! $az_id && 'collega' !== $r->tipo ) {
 			$az_id = absint( apac_post( 'azienda_esistente_id' ) );

@@ -777,6 +777,22 @@ function apac_op_utente_create( $azienda_id ) {
 	if ( is_wp_error( $user_id ) ) {
 		apac_redirect( 'utenti', 'db_error' );
 	}
+	// 1.9.14: se l'operazione viene annullata dopo questo punto, l'utente non deve restare. Con tabelle
+	// InnoDB il ROLLBACK lo toglie già (qui si svuota solo la cache, che altrimenti lo mostrerebbe ancora);
+	// con tabelle di WordPress non transazionali (es. MyISAM) viene eliminato esplicitamente.
+	apac_tx_on_rollback(
+		function () use ( $user_id ) {
+			global $wpdb;
+			clean_user_cache( (int) $user_id );
+			wp_cache_delete( (int) $user_id, 'user_meta' );
+			$ancora = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->users} WHERE ID = %d", (int) $user_id ) );
+			if ( $ancora ) {
+				require_once ABSPATH . 'wp-admin/includes/user.php';
+				wp_delete_user( (int) $user_id );
+				clean_user_cache( (int) $user_id );
+			}
+		}
+	);
 	update_user_meta( $user_id, 'apac_azienda_id', $azienda_id );
 	if ( (int) get_user_meta( $user_id, 'apac_azienda_id', true ) !== (int) $azienda_id ) {
 		apac_redirect( 'utenti', 'db_error' );

@@ -348,6 +348,8 @@ function apac_messages() {
 		'richiesta_doppia'    => array( 'error', 'Per questa email c’è già una richiesta in attesa dello studio.' ),
 		'richieste_troppe'    => array( 'error', 'Ci sono già troppe richieste in attesa per la tua azienda: attendi che lo studio le gestisca.' ),
 		'richiesta_gestita'   => array( 'error', 'Questa richiesta era già stata gestita (forse da un’altra finestra): nessuna modifica.' ),
+		'need_dest'           => array( 'error', 'Scegli se creare una nuova azienda o collegare il referente a un’azienda esistente.' ),
+		'need_verifica'       => array( 'error', 'Per collegare il referente a un’azienda esistente conferma di aver verificato con l’azienda che è autorizzato.' ),
 		'richiesta_rifiutata' => array( 'ok', 'Richiesta rifiutata. Il richiedente è stato avvisato via email.' ),
 		'richiesta_rifiutata_nomail' => array( 'warn', 'Richiesta rifiutata, ma l’email al richiedente NON è partita: verifica la configurazione email e avvisalo direttamente.' ),
 		'storage_write' => array( 'error', 'Caricamento non riuscito: il server non ha permesso di salvare il file. Nessuna modifica è stata salvata.' ),
@@ -441,6 +443,7 @@ function apac_tx_state( $reset = false ) {
 			'active'       => false,
 			'new_files'    => array(), // Da cancellare se l'operazione fallisce.
 			'after_commit' => array(), // Da eseguire solo se l'operazione riesce.
+			'on_rollback'  => array(), // 1.9.14: da eseguire se l'operazione viene annullata.
 		);
 	}
 	return $state;
@@ -484,6 +487,16 @@ function apac_tx_after_commit( $callback ) {
 	apac_tx_set( $s );
 }
 
+/**
+ * 1.9.14 – Azione di compensazione da eseguire se l'operazione viene annullata (dopo il ROLLBACK).
+ * Serve per ciò che il ROLLBACK potrebbe non annullare: tabelle di WordPress non InnoDB, cache persistente.
+ */
+function apac_tx_on_rollback( $callback ) {
+	$s                  = apac_tx_get();
+	$s['on_rollback'][] = $callback;
+	apac_tx_set( $s );
+}
+
 function apac_tx_commit() {
 	global $wpdb;
 	$ok = ( false !== $wpdb->query( 'COMMIT' ) );
@@ -491,9 +504,10 @@ function apac_tx_commit() {
 		apac_tx_rollback();
 		return false;
 	}
-	$s           = apac_tx_get();
-	$s['active'] = false;
-	$s['new_files'] = array();
+	$s                = apac_tx_get();
+	$s['active']      = false;
+	$s['new_files']   = array();
+	$s['on_rollback'] = array();
 	apac_tx_set( $s );
 	return true;
 }
@@ -525,7 +539,14 @@ function apac_tx_rollback() {
 			wp_delete_file( $f );
 		}
 	}
+	$undo = isset( $s['on_rollback'] ) ? array_reverse( (array) $s['on_rollback'] ) : array();
 	apac_tx_set( apac_tx_state( true ) );
+	foreach ( $undo as $cb ) {
+		try {
+			call_user_func( $cb );
+		} catch ( Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+		}
+	}
 }
 
 /**

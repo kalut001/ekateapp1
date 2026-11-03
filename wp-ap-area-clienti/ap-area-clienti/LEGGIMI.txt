@@ -1,4 +1,4 @@
-AP AREA CLIENTI – versione 1.9.13
+AP AREA CLIENTI – versione 1.9.14
 =================================
 
 Plugin WordPress per l'area riservata delle aziende clienti di AP Sicurezza Lavoro.
@@ -251,3 +251,28 @@ NOVITÀ 1.9.13 – richiesta di accesso e notifiche dal computer
   revocata) e mostra il motivo dell'errore. Messaggio specifico per Brave.
 - Database versione 14 (nuova tabella «richieste»), aggiornamento automatico e ripetibile.
 - DA FARE NELL'INFORMATIVA PRIVACY DEL SITO: aggiungere il trattamento dei dati delle richieste di accesso.
+
+NOVITÀ 1.9.14 – correzioni dopo la revisione della 1.9.13
+- Richieste di accesso, modulo sospeso: contano solo le richieste CONFERMATE in attesa dello studio (massimo 50).
+  Prima contavano anche quelle mai confermate: con 50 email inventate si bloccava il modulo a tutti fino a 7 giorni.
+- Approvazione: nessuna scelta preimpostata fra «Crea una nuova azienda» e «Collega a un'azienda esistente».
+  Per collegare a un'azienda esistente è obbligatoria la casella «Ho verificato direttamente con l'azienda…»,
+  ricontrollata anche dal server. La conferma dell'email non dimostra che il richiedente lavori per l'azienda
+  e la partita IVA è un dato pubblico.
+- Limite di 10 invii l'ora per indirizzo: il contatore è protetto da un lock del database (invii contemporanei
+  non lo superano); per IPv6 si conta la rete /64. Se il sito è dietro un proxy o una CDN aggiungere in
+  wp-config.php l'intestazione con l'IP reale, per esempio con Cloudflare:
+      define( 'APAC_IP_HEADER', 'HTTP_CF_CONNECTING_IP' );
+  Senza questa riga tutti i visitatori risultano con l'IP del proxy e il limite diventa unico per tutto il sito.
+- Email automatiche verso lo stesso indirizzo: al massimo 3 in 48 ore (conferma, «hai già un account», ecc.).
+  Oltre, la pagina risponde come sempre ma non parte nessuna email.
+- L'email di conferma non contiene più testo scritto dal richiedente (nome, ragione sociale).
+- Un nuovo invio con la stessa email non sostituisce più una richiesta da confermare: ogni invio ha il proprio
+  link; vale il primo confermato e le altre richieste da confermare con quell'email vengono eliminate.
+- Creazione degli accessi: se il salvataggio viene annullato, l'utente WordPress appena creato viene rimosso
+  anche con tabelle di WordPress non transazionali, e viene svuotata la cache degli utenti.
+- Modifica utente e invio della password: stessi controlli di revoca ed eliminazione (solo utenti clienti).
+- Accesso: «Ricordami» non è più spuntato in partenza (computer condivisi).
+- Documenti, versioni, foto, esportazione e riepilogo: non si scaricano finché il cliente non ha firmato
+  informativa e accordo art. 28 (prima era bloccato solo il resto dell'area).
+- Nessuna modifica al database (resta versione 14).
