@@ -72,3 +72,12 @@ add_filter(
 	10,
 	3
 );
+
+/**
+ * Operazione di prova NON registrata nel registro e con un effetto visibile: il dispatcher non deve mai eseguirla.
+ * (Esclusa dal test di completezza del registro.)
+ */
+function apac_op_test_non_registrata( $azienda_id ) {
+	update_option( 'apac_test_eseguita', 1 );
+	apac_redirect( 'dashboard', 'saved' );
+}

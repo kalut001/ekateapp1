@@ -65,7 +65,10 @@ foreach ( $mutazioni as $m ) {
 	$nome   = $m[0];
 	$sost   = is_array( $m[1] ) ? $m[1] : array( array( $m[1], $m[2], $m[3] ) );
 	$equiv  = isset( $m['equivalente'] ) ? $m['equivalente'] : '';
-	if ( '' !== $filter && false === stripos( $nome, $filter ) ) {
+	// Filtro: una o più parti del nome separate da "|".
+	if ( '' !== $filter && ! array_filter( explode( '|', $filter ), function ( $f ) use ( $nome ) {
+		return '' !== $f && false !== stripos( $nome, $f );
+	} ) ) {
 		continue;
 	}
 	shell_exec( 'rm -rf ' . escapeshellarg( $tmp ) );

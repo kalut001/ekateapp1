@@ -20,7 +20,7 @@ T::test(
 	function () {
 		$out = json_decode(
 			Wp::php(
-				'$def = array_values( array_filter( get_defined_functions()["user"], function ($f) { return 0 === strpos( $f, "apac_op_" ) && ! in_array( $f, array( "apac_op_permission", "apac_op_section" ), true ); } ) );'
+				'$def = array_values( array_filter( get_defined_functions()["user"], function ($f) { return 0 === strpos( $f, "apac_op_" ) && ! in_array( $f, array( "apac_op_permission", "apac_op_section", "apac_op_test_non_registrata" ), true ); } ) );'
 				. '$reg = function_exists("apac_operazioni") ? apac_operazioni() : array();'
 				. '$fns = array(); foreach ( $reg as $k => $o ) { $fns[] = $o["fn"]; }'
 				. 'echo json_encode( array( "non_registrate" => array_values( array_diff( $def, $fns ) ), "inesistenti" => array_values( array_filter( $fns, function ($f) { return ! function_exists( $f ); } ) ), "n" => count( $reg ) ) );'
@@ -69,6 +69,10 @@ T::test(
 			$msg = $s->op( $op, array(), $a );
 			T::eq( 'invalid', $msg, "operazione «{$op}»" );
 		}
+		// Funzione apac_op_* esistente ma NON registrata, con effetto visibile: non deve essere eseguita.
+		Wp::delete_option( 'apac_test_eseguita' );
+		T::eq( 'invalid', $s->op( 'test_non_registrata', array(), $a ), 'operazione non registrata' );
+		T::eq( '', Wp::php( 'echo get_option("apac_test_eseguita", "");' ), 'operazione non registrata eseguita' );
 		// Nessun codice monouso registrato per un'operazione sconosciuta.
 		T::eq( $invii, Db::val( 'SELECT COUNT(*) FROM wp_apac_invii' ), 'codici monouso registrati' );
 	}
