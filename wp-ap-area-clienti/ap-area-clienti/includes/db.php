@@ -507,6 +507,7 @@ function apac_scadenze_series_roots( $rows ) {
 		$path = array();
 		$pos  = array();
 		$cur  = $id;
+		$root = $id; // Sempre assegnata nel ciclo; valore iniziale per l'analisi statica.
 		while ( true ) {
 			if ( isset( $roots[ $cur ] ) ) {
 				$root = $roots[ $cur ];

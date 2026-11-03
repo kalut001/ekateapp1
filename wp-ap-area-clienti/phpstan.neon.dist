@@ -1,0 +1,17 @@
+# Analisi statica: php vendor/bin/phpstan analyse   (dipendenze: composer install)
+parameters:
+    level: 5
+    phpVersion: 70400
+    paths:
+        - ap-area-clienti
+    scanFiles:
+        - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+    bootstrapFiles:
+        - tests/phpstan-bootstrap.php
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # Falso positivo: $ops è modificata per riferimento dalla closure $newpage (consensi.php, generazione PDF).
+        -
+            message: "#^Strict comparison using \\!\\=\\= between '' and '' will always evaluate to false\\.$#"
+            path: ap-area-clienti/includes/consensi.php
+            count: 1

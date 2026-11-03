@@ -152,7 +152,7 @@ function apac_render_prefs( $id ) {
 	$p    = apac_prefs();
 	$back = ( is_ssl() ? 'https://' : 'http://' ) . ( isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '' ) . ( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' );
 	$back = remove_query_arg( array( 'apac_msg', 'apac_form', 'nuovo' ), $back );
-	$opt  = function ( $name, $value, $label, $cur ) use ( $id ) {
+	$opt  = function ( $name, $value, $label, $cur ) {
 		return '<label class="apac-seg__opt"><input type="radio" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"' . checked( $cur, $value, false ) . ' data-apac-autosubmit><span>' . esc_html( $label ) . '</span></label>';
 	};
 	$h  = '<form method="post" class="apac-prefs" action="' . esc_url( apac_portal_post_url() ) . '" id="' . esc_attr( $id ) . '">';

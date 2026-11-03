@@ -647,7 +647,7 @@ function apac_pdf_firma( $title, $docs, $jpeg, $meta ) {
 	$t      = function ( $s, $size, $bold, $x, $yy, $color ) use ( $esc ) {
 		return sprintf( "BT %s rg /%s %.1F Tf %.2F %.2F Td (%s) Tj ET\n", $color, $bold ? 'F2' : 'F1', $size, $x, $yy, $esc( apac_pdf_enc( $s ) ) );
 	};
-	$header = function ( $first ) use ( $W, $H, $m, $maxw, $green, $yellow, $gray, $has_lg, $lsz, $t ) {
+	$header = function ( $first ) use ( $H, $m, $maxw, $green, $yellow, $gray, $has_lg, $lsz, $t ) {
 		$o = '';
 		if ( $first ) {
 			$lh = 66;

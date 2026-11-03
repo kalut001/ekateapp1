@@ -214,7 +214,7 @@ function apac_push_user( $user_id, $title, $body, $url = '' ) {
 /** Notifica agli utenti attivi di un'azienda. */
 function apac_push_azienda( $azienda_id, $title, $body, $url = '' ) {
 	$n = 0;
-	foreach ( get_users( array( 'meta_key' => 'apac_azienda_id', 'meta_value' => (int) $azienda_id, 'fields' => 'ID' ) ) as $uid ) {
+	foreach ( get_users( array( 'meta_key' => 'apac_azienda_id', 'meta_value' => (string) (int) $azienda_id, 'fields' => 'ID' ) ) as $uid ) {
 		if ( ! apac_user_revoked( $uid ) ) {
 			$n += apac_push_user( (int) $uid, $title, $body, $url );
 		}
@@ -799,7 +799,7 @@ function apac_op_corso_richiesta( $azienda_id ) {
 	if ( ! apac_is_admin() ) {
 		$az = apac_get_azienda( $azienda_id );
 		apac_tx_after_commit(
-			function () use ( $az, $corso, $descr ) {
+			function () use ( $az, $descr ) {
 				$ok = apac_send_mail( get_option( 'admin_email' ), '[Area clienti] Richiesta corso da ' . $az->ragione_sociale, "Azienda: {$az->ragione_sociale}\n\n{$descr}\n\n" . apac_portal_page_url(), apac_auto_headers() );
 				return $ok ? '' : 'sent_nomail';
 			}

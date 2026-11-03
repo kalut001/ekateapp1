@@ -679,7 +679,8 @@ function apac_import_read_rows( $tmp, $name ) {
  *  - con scadenze diverse   = CONFLITTO: nessuna riga si importa finché non si sceglie quale tenere
  *    ($scelte: codice del conflitto => numero di riga da tenere, 0 = nessuna);
  *  - già presente nell'archivio con scadenza diversa = errore: si corregge nella scheda del lavoratore.
- * @return array [ 'righe' => [...], 'nuovi' => n, 'attestati' => n, 'errori' => n, 'conflitti' => [ codice => [righe] ], 'irrisolti' => n ]
+ * @return array|WP_Error [ 'righe' => [...], 'nuovi' => n, 'attestati' => n, 'errori' => n, 'conflitti' => [ codice => [righe] ], 'irrisolti' => n ]
+ *                        oppure WP_Error se l'intestazione del file non è valida (gestito da chi chiama).
  */
 function apac_import_analyze( $rows, $azienda_id, $scelte = array() ) {
 	global $wpdb;

@@ -1,0 +1,25 @@
+{
+    "name": "ap-sicurezza/ap-area-clienti",
+    "description": "AP Area Clienti – strumenti di sviluppo (analisi statica). Il plugin non ha dipendenze di runtime.",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "phpstan/phpstan": "^1.12",
+        "php-stubs/wordpress-stubs": "^6.6",
+        "squizlabs/php_codesniffer": "^3.13",
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcsstandards/phpcsutils": "^1.1",
+        "phpcsstandards/phpcsextra": "^1.2"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": false
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "phpstan": "phpstan analyse -c phpstan.neon.dist --no-progress",
+        "phpcs": "@php bin/phpcs-check.php",
+        "lint": "for f in ap-area-clienti/*.php ap-area-clienti/includes/*.php; do php -l \"$f\" > /dev/null || exit 1; done"
+    }
+}
