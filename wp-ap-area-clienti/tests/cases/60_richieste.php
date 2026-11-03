@@ -181,3 +181,19 @@ T::test(
 		apac_t_rich_reset();
 	}
 );
+
+T::test(
+	'richieste: email di un account esistente inviata 5 volte = al massimo 3 avvisi «hai già un account»',
+	function () {
+		apac_t_rich_reset();
+		for ( $i = 0; $i < 5; $i++ ) {
+			T::eq( 'inviata', apac_t_richiesta( 'admin@example.com' ), 'risposta a video (non rivela l\'account)' );
+		}
+		$n = count( array_filter( Wp::mails(), function ( $m ) {
+			return 'admin@example.com' === $m->to;
+		} ) );
+		T::eq( 3, $n, 'avvisi inviati alla stessa casella' );
+		T::eq( '0', Db::val( 'SELECT COUNT(*) FROM wp_apac_richieste' ), 'richieste registrate per un account esistente' );
+		apac_t_rich_reset();
+	}
+);
