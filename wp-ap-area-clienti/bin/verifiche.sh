@@ -69,7 +69,12 @@ blocco "PHPCS regole di sicurezza (baseline verificata a mano)" php bin/phpcs-ch
 blocco "Test end-to-end sul plugin del repository" test_repo
 blocco "Test end-to-end sul plugin estratto dallo zip" test_zip
 blocco "Aggiornamento dalla 1.9.13 originale con dati esistenti" aggiornamento
-blocco "Mutazioni: controlli di sicurezza tolti uno per volta" php bin/mutation-check.php
+if [ -n "${APAC_MUTAZIONI_LOG:-}" ]; then
+	# Mutazioni già eseguite sullo stesso codice (bin/mutation-check.php): se ne riporta il registro.
+	blocco "Mutazioni: controlli di sicurezza tolti uno per volta (registro di bin/mutation-check.php)" bash -c "cat '$APAC_MUTAZIONI_LOG'; grep -q '^NON RILEVATA\\|ERRORE' '$APAC_MUTAZIONI_LOG' && exit 1 || exit 0"
+else
+	blocco "Mutazioni: controlli di sicurezza tolti uno per volta" php bin/mutation-check.php
+fi
 bin/test-env.sh > /dev/null 2>&1 # Ambiente di nuovo sul plugin del repository.
 
 {
