@@ -1,0 +1,56 @@
+Instructions for interpreting errors
+---------
+
+Each error has an associated identifier, like `argument.type`
+or `return.missing`.
+
+Each error identifier has documentation at URL https://phpstan.org/error-identifiers/<identifier>
+This page contains code example, explanation why is this an error
+and instruction how to fix it.
+Before fixing the error, fetch the documentation page for its identifier.
+
+The error usually indicates a real bug or incorrect type in the code. Fix the underlying cause, do not just make the error go away.
+Do not add `@phpstan-ignore` comments, `@phpstan-ignore-next-line` comments, or baseline entries to suppress the error.
+Do not use assert() or inline @var PHPDoc tag to override PHPStan's inferred type.
+Do not add type casts just to silence errors.
+Do not widen parameter or return types just to make the error go away.
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/ap-area-clienti.php:134:Call to function is_wp_error() with int<1, max> will always evaluate to false. [identifier=function.impossibleType]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin-tools.php:417:Call to function is_wp_error() with WP_Error will always evaluate to true. [identifier=function.alreadyNarrowedType]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:8:Right side of && is always false. [identifier=booleanAnd.rightAlwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:16:Left side of && is always true. [identifier=booleanAnd.leftAlwaysTrue]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:25:Left side of && is always true. [identifier=booleanAnd.leftAlwaysTrue]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:65:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:81:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:91:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:101:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:111:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/admin.php:121:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/anteprima.php:27:Right side of && is always false. [identifier=booleanAnd.rightAlwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/attrezzature.php:449:Left side of || is always false. [identifier=booleanOr.leftAlwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/consensi.php:472:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/consensi.php:566:Strict comparison using !== between '' and '' will always evaluate to false. [identifier=notIdentical.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/consensi.php:599:Strict comparison using === between 0 and 0 will always evaluate to true. [identifier=identical.alwaysTrue]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/consensi.php:715:Strict comparison using === between 0 and 0 will always evaluate to true. [identifier=identical.alwaysTrue]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/consensi.php:730:Offset int<1, 8> on array{1: 15, 2: 64, 3: 121, 4: 218, 5: 320, 6: int<1, max>, 7: int<1, max>, 8: int<1, max>} on left side of ?? always exists and is not nullable. [identifier=nullCoalesce.offset]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/contatti.php:56:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/importazione.php:198:Constant MB_IN_BYTES not found. [identifier=constant.notFound]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/importazione.php:201:Offset 'size' on array{name: string, index: int, crc: int, size: int, mtime: int, comp_size: int, comp_method: int, encryption_method: int} in isset() always exists and is not nullable. [identifier=isset.offset]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/importazione.php:519:Constant MB_IN_BYTES not found. [identifier=constant.notFound]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/importazione.php:651:Constant MB_IN_BYTES not found. [identifier=constant.notFound]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/mail.php:175:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/mail.php:226:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/moduli-comuni.php:155:Call to function method_exists() with WP_Image_Editor and 'maybe_exif_rotate' will always evaluate to true. [identifier=function.alreadyNarrowedType]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/protocollo.php:148:Function apac_prot_assegna() should return object but returns null. [identifier=return.type]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/pwa.php:26:Right side of && is always false. [identifier=booleanAnd.rightAlwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/richieste.php:172:Right side of && is always false. [identifier=booleanAnd.rightAlwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/seo.php:176:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sgsl-emergenze.php:22:Parameter #2 $callback of function array_filter expects (callable(string): bool)|null, 'strlen' given. [identifier=argument.type]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sgsl-moduli.php:234:Parameter #2 $callback of function array_filter expects (callable(string): bool)|null, 'strlen' given. [identifier=argument.type]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sgsl-moduli.php:895:Variable $v might not be defined. [identifier=variable.undefined]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sgsl-moduli.php:899:Variable $v might not be defined. [identifier=variable.undefined]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sgsl-strumenti.php:203:Parameter #2 $callback of function array_filter expects (callable(string): bool)|null, 'strlen' given. [identifier=argument.type]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sopralluoghi.php:702:Parameter #1 $args of function get_users expects array{blog_id?: int, role?: array<string>|string, role__in?: array<string>, role__not_in?: array<string>, meta_key?: array<string>|string, meta_value?: array<string>|string, meta_compare?: string, meta_compare_key?: string, ...}, array{meta_key: 'apac_azienda_id', meta_value: int} given. [identifier=argument.type]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sopralluoghi.php:724:Parameter #1 $args of function get_users expects array{blog_id?: int, role?: array<string>|string, role__in?: array<string>, role__not_in?: array<string>, meta_key?: array<string>|string, meta_value?: array<string>|string, meta_compare?: string, meta_compare_key?: string, ...}, array{meta_key: 'apac_azienda_id', meta_value: int} given. [identifier=argument.type]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/sopralluoghi.php:1030:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/spazio.php:90:Strict comparison using !== between null and mixed will always evaluate to true. [identifier=notIdentical.alwaysTrue]
+/tmp/claude-0/-home-user-ekateapp1/e57d2537-192f-5d2e-ad4d-021f9810516e/scratchpad/src/ap-area-clienti/includes/spazio.php:146:Negated boolean expression is always false. [identifier=booleanNot.alwaysFalse]

@@ -1,0 +1,146 @@
+SQL includes/actions.php:174 $t
+SQL includes/actions.php:178 $tab
+SQL includes/actions.php:684 $riapri
+SQL includes/actions.php:684 :
+SQL includes/actions.php:684 ?
+SQL includes/cantieri.php:68 $solo_attive
+SQL includes/cantieri.php:68 :
+SQL includes/cantieri.php:68 ?
+SQL includes/consegne.php:212 $admin
+SQL includes/consegne.php:212 :
+SQL includes/consegne.php:212 ?
+SQL includes/criticita.php:174 apac_sql_attestato_corrente
+SQL includes/db.php:1114 $t
+SQL includes/documenti.php:158 $solo_lav
+SQL includes/documenti.php:158 :
+SQL includes/documenti.php:158 ?
+SQL includes/documenti.php:64 $table
+SQL includes/fascicolo.php:91 apac_sql_attestato_corrente
+SQL includes/formazione-regole.php:170 apac_sql_attestato_corrente
+SQL includes/formazione-regole.php:216 apac_sql_attestato_corrente
+SQL includes/formazione-regole.php:235 apac_sql_attestato_corrente
+SQL includes/helpers.php:143 $table
+SQL includes/helpers.php:157 $sql
+SQL includes/importazione.php:799 apac_sql_attestato_corrente
+SQL includes/incarichi.php:75 apac_sql_attestato_corrente
+SQL includes/informazione.php:119 $admin
+SQL includes/informazione.php:119 :
+SQL includes/informazione.php:119 ?
+SQL includes/informazione.php:154 interpolated variable {$i} at " l WHERE l.azienda_id = %d AND l.attivo = 1 AND NOT EXISTS ( SELECT 1 FROM {$t} x INNER JOIN {$i} i ON i.id = x.informazione_id WHERE x.lavoratore_id = l.id AND i.stato = 'firmato' ) ORDER BY l.cognome, l.nome"
+SQL includes/informazione.php:154 interpolated variable {$t} at " l WHERE l.azienda_id = %d AND l.attivo = 1 AND NOT EXISTS ( SELECT 1 FROM {$t} x INNER JOIN {$i} i ON i.id = x.informazione_id WHERE x.lavoratore_id = l.id AND i.stato = 'firmato' ) ORDER BY l.cognome, l.nome"
+SQL includes/lavoratore-area.php:269 apac_sql_attestato_corrente
+SQL includes/lavoratori.php:58 apac_sql_attestato_corrente
+SQL includes/moduli-comuni.php:102 $ids
+SQL includes/moduli-comuni.php:187 $ids
+SQL includes/moduli-comuni.php:188 $ids
+SQL includes/moduli-comuni.php:381 $c
+SQL includes/moduli-comuni.php:381 $t
+SQL includes/moduli-comuni.php:391 $c
+SQL includes/moduli-comuni.php:391 $t
+SQL includes/moduli-comuni.php:422 $c
+SQL includes/moduli-comuni.php:422 $t
+SQL includes/nomine.php:112 apac_sql_attestato_corrente
+SQL includes/nomine.php:212 $admin
+SQL includes/nomine.php:212 :
+SQL includes/nomine.php:212 ?
+SQL includes/nomine.php:73 interpolated variable $in at " WHERE azienda_id = %d AND stato = 'firmato' AND id <> %d AND ruolo IN ($in) ORDER BY firmato_at DESC, id DESC"
+SQL includes/notifiche.php:181 apac_sql_attestato_corrente
+SQL includes/perf.php:35 apac_sql_attestato_corrente
+SQL includes/portal.php:1041 apac_sql_attestato_corrente
+SQL includes/portal.php:1171 apac_sql_attestato_corrente
+SQL includes/portal.php:1308 $ord
+SQL includes/portal.php:1308 $orders
+SQL includes/portal.php:1310 $ord
+SQL includes/portal.php:1310 $orders
+SQL includes/portal.php:333 $table
+SQL includes/portal.php:333 $where
+SQL includes/portal.php:489 apac_sql_attestato_corrente
+SQL includes/portal.php:680 apac_sql_attestato_corrente
+SQL includes/portal.php:965 apac_sql_attestato_corrente
+SQL includes/protocollo.php:121 interpolated variable {$t} at "SELECT MAX(numero) FROM {$t} WHERE azienda_id = %d AND anno = %d"
+SQL includes/protocollo.php:555 $w
+SQL includes/protocollo.php:555 interpolated variable {$ord} at " ORDER BY {$ord} LIMIT %d"
+SQL includes/protocollo.php:569 $p
+SQL includes/protocollo.php:569 $tab
+SQL includes/protocollo.php:569 tipo
+SQL includes/richieste.php:1013 interpolated variable {$t} at "DELETE FROM {$t} WHERE stato = 'da_confermare' AND inviata_at < %s"
+SQL includes/richieste.php:1014 interpolated variable {$t} at "DELETE FROM {$t} WHERE stato IN ('approvata','rifiutata') AND gestita_at < %s"
+SQL includes/richieste.php:373 interpolated variable {$t} at "SELECT id FROM {$t} WHERE stato = 'rifiutata' AND gestita_at >= %s AND ( email = %s OR ( partita_iva <> '' AND partita_iva = %s ) ) LIMIT 1"
+SQL includes/richieste.php:388 interpolated variable {$t} at "SELECT id FROM {$t} WHERE stato = 'in_attesa' AND email = %s LIMIT 1"
+SQL includes/richieste.php:425 interpolated variable {$t} at "SELECT COUNT(*) FROM {$t} WHERE stato = 'da_confermare' AND email = %s AND inviata_at >= %s"
+SQL includes/richieste.php:479 interpolated variable {$t} at "SELECT id FROM {$t} WHERE stato = 'in_attesa' AND email = %s AND id <> %d LIMIT 1"
+SQL includes/richieste.php:485 interpolated variable {$t} at "UPDATE {$t} SET stato = 'in_attesa', confermata_at = %s WHERE id = %d AND stato = 'da_confermare'"
+SQL includes/richieste.php:487 interpolated variable {$t} at "DELETE FROM {$t} WHERE stato = 'da_confermare' AND email = %s AND id <> %d"
+SQL includes/richieste.php:706 interpolated variable {$t} at "SELECT id FROM {$t} WHERE stato = 'in_attesa' AND email = %s LIMIT 1"
+SQL includes/richieste.php:709 interpolated variable {$t} at "SELECT COUNT(*) FROM {$t} WHERE stato = 'in_attesa' AND tipo = 'collega' AND azienda_id = %d"
+SQL includes/richieste.php:754 interpolated variable {$t} at "SELECT * FROM {$t} WHERE stato = 'in_attesa' ORDER BY id ASC LIMIT 50"
+SQL includes/richieste.php:769 interpolated variable {$t} at "SELECT gestita_at FROM {$t} WHERE id <> %d AND stato = 'rifiutata' AND ( email = %s OR ( partita_iva <> '' AND partita_iva = %s ) ) ORDER BY id DESC LIMIT 1"
+SQL includes/richieste.php:835 interpolated variable {$t} at "SELECT * FROM {$t} WHERE stato = 'da_confermare' ORDER BY id DESC LIMIT 50"
+SQL includes/richieste.php:836 interpolated variable {$t} at "SELECT * FROM {$t} WHERE stato IN ('approvata','rifiutata') AND gestita_at >= %s ORDER BY gestita_at DESC LIMIT 100"
+SQL includes/riepiloghi.php:203 apac_sql_attestato_corrente
+SQL includes/riepiloghi.php:52 apac_sql_attestato_corrente
+SQL includes/rifiniture.php:134 apac_sql_attestato_corrente
+SQL includes/rifiniture.php:135 apac_sql_attestato_corrente
+SQL includes/sgsl-lavoratori.php:226 apac_sql_attestato_corrente
+SQL includes/sgsl-miglioramento.php:42 $w
+SQL includes/sgsl-miglioramento.php:46 $wa
+SQL includes/sgsl-moduli.php:383 $admin
+SQL includes/sgsl-moduli.php:383 $can
+SQL includes/sgsl-moduli.php:383 :
+SQL includes/sgsl-moduli.php:383 ?
+SQL includes/sgsl-moduli.php:383 interpolated variable $in at " WHERE azienda_id = %d AND tipo IN ($in)"
+SQL includes/sgsl-moduli.php:383 ||
+SQL includes/sopralluoghi.php:323 $admin
+SQL includes/sopralluoghi.php:323 :
+SQL includes/sopralluoghi.php:323 ?
+SQL includes/webp.php:241 $tab
+WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery includes/moduli-comuni.php:381 SQL wildcards for a LIKE query should be passed in through a replacement parameter. Found:
+WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber includes/check-dvr.php:334 Incorrect number of replacements passed to $wpdb->prepare(). Found 2 replacement parameter
+WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber includes/formazione-regole.php:154 Incorrect number of replacements passed to $wpdb->prepare(). Found 1 replacement parameter
+WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber includes/nomine.php:73 Incorrect number of replacements passed to $wpdb->prepare(). Found 1 replacement parameter
+WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber includes/portal.php:1535 Incorrect number of replacements passed to $wpdb->prepare(). Found 1 replacement parameter
+WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare includes/attrezzature.php:96 Replacement variables found, but no valid placeholders found in the query.
+WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare includes/portal.php:1500 Replacement variables found, but no valid placeholders found in the query.
+WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare includes/portal.php:333 Replacement variables found, but no valid placeholders found in the query.
+WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare includes/sgsl-preposto.php:46 Replacement variables found, but no valid placeholders found in the query.
+WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare includes/sgsl-studio.php:183 Replacement variables found, but no valid placeholders found in the query.
+WordPress.DB.PreparedSQLPlaceholders.UnnecessaryPrepare includes/sgsl-studio.php:103 It is not necessary to prepare a query which doesn't use variable replacement.
+WordPress.Security.EscapeOutput.OutputNotEscaped includes/importazione.php:669 All output should be run through an escaping function (see the Security sections in the Wo
+WordPress.Security.EscapeOutput.OutputNotEscaped includes/moduli-comuni.php:491 All output should be run through an escaping function (see the Security sections in the Wo
+WordPress.Security.NonceVerification.Missing includes/actions.php:392 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/actions.php:399 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/actions.php:510 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/actions.php:514 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/admin-tools.php:486 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/admin-tools.php:487 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/cantieri.php:585 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/cantieri.php:592 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/importazione.php:515 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/importazione.php:519 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/importazione.php:522 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/incarichi.php:398 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/incarichi.php:405 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/obblighi.php:171 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Missing includes/obblighi.php:178 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Recommended includes/helpers.php:81 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Recommended includes/helpers.php:82 Processing form data without nonce verification.
+WordPress.Security.NonceVerification.Recommended includes/sgsl-rischi.php:70 Processing form data without nonce verification.
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/forms.php:77 Detected usage of a non-sanitized input variable: $_GET['apac_form']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/helpers.php:789 Detected usage of a non-sanitized input variable: $_POST[$key]
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/push.php:268 Detected usage of a non-sanitized input variable: $_POST['p256dh']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/push.php:269 Detected usage of a non-sanitized input variable: $_POST['auth']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/richieste.php:557 Detected usage of a non-sanitized input variable: $_GET['t']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/richieste.php:97 Detected usage of a non-sanitized input variable: $_SERVER['REMOTE_ADDR']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/richieste.php:99 Detected usage of a non-sanitized input variable: $_SERVER[APAC_IP_HEADER]
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/rifiniture.php:76 Detected usage of a non-sanitized input variable: $_FILES['file']['size']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sgsl-plus.php:161 Detected usage of a non-sanitized input variable: $_POST['firma']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sgsl-plus.php:162 Detected usage of a non-sanitized input variable: $_POST['letto']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sgsl-studio.php:169 Detected usage of a non-sanitized input variable: $_GET['mese']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sopralluoghi.php:622 Detected usage of a non-sanitized input variable: $_POST['esito']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sopralluoghi.php:623 Detected usage of a non-sanitized input variable: $_POST['nota']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sopralluoghi.php:624 Detected usage of a non-sanitized input variable: $_POST['az_titolo']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sopralluoghi.php:625 Detected usage of a non-sanitized input variable: $_POST['az_priorita']
+WordPress.Security.ValidatedSanitizedInput.InputNotSanitized includes/sopralluoghi.php:626 Detected usage of a non-sanitized input variable: $_POST['az_scadenza']
+WordPress.Security.ValidatedSanitizedInput.InputNotValidated includes/segnalazioni.php:11 Detected usage of a possibly undefined superglobal array index: $_FILES['foto']['name']. C
+WordPress.Security.ValidatedSanitizedInput.MissingUnslash includes/sgsl-plus.php:162 $_POST['letto'] not unslashed before sanitization. Use wp_unslash() or similar
+WordPress.Security.ValidatedSanitizedInput.MissingUnslash includes/sgsl-studio.php:169 $_GET['mese'] not unslashed before sanitization. Use wp_unslash() or similar
